@@ -282,14 +282,9 @@ Respond naturally to the topic as if you were a human. Keep your response conver
             this.addMessage(bot.name, response.trim(), 'bot');
         } catch (error) {
             console.error('Error generating bot response:', error);
-            const fallbackResponses = [
-                "That's an interesting perspective on this topic.",
-                "I have mixed feelings about that, to be honest.",
-                "Oh wow, I never thought about it that way before!",
-                "That reminds me of something that happened to me once."
-            ];
-            const response = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
-            this.addMessage(bot.name, response, 'bot');
+            alert(`Error generating response for ${bot.name}: ${error.message}`);
+            // Skip this bot's turn and move to next speaker
+            return;
         }
     }
 
@@ -359,14 +354,7 @@ ${chatHistory}
 
 Players: ${playerList}
 
-Who seems most like a human? Consider factors like:
-- Natural conversation flow
-- Emotional responses
-- Personal anecdotes
-- Slight imperfections or quirks
-- Less formal language
-
-Respond with only the player's name.`;
+Who seems most like a human? Respond with only the player's name.`;
 
                     const response = await this.callOpenRouter(player.model, prompt);
                     const votedPlayer = response.trim();
@@ -381,9 +369,9 @@ Respond with only the player's name.`;
                     }
                 } catch (error) {
                     console.error('Error generating bot vote:', error);
-                    // Random vote on error
-                    const randomPlayer = this.players[Math.floor(Math.random() * this.players.length)];
-                    this.votes[player.name] = randomPlayer.name;
+                    alert(`Error generating vote for ${player.name}: ${error.message}`);
+                    // Skip this bot's vote
+                    continue;
                 }
             }
         }
