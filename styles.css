@@ -315,6 +315,13 @@ button:disabled {
     margin-right: 8px;
 }
 
+.human-indicator {
+    color: #4CAF50;
+    font-size: 0.8em;
+    font-weight: bold;
+    opacity: 0.9;
+}
+
 #vote-results-content {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 8px;

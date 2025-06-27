@@ -473,9 +473,10 @@ Respond with only the player's name.`;
         this.turnOrder.forEach((player, index) => {
             const playerDiv = document.createElement('div');
             playerDiv.className = 'turn-order-player';
+            const humanIndicator = player.type === 'human' ? ' <span class="human-indicator">(human)</span>' : '';
             playerDiv.innerHTML = `
                 <span class="turn-order-number">${index + 1}</span>
-                ${player.name}
+                ${player.name}${humanIndicator}
             `;
             turnOrderList.appendChild(playerDiv);
         });
