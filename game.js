@@ -26,6 +26,7 @@ class HumanSpyGame {
             }
         });
         document.getElementById('submit-vote').addEventListener('click', () => this.submitVote());
+        document.getElementById('continue-game').addEventListener('click', () => this.continueToNextTurn());
         document.getElementById('play-again').addEventListener('click', () => this.resetGame());
     }
 
@@ -93,6 +94,8 @@ class HumanSpyGame {
         this.shuffleTurnOrder();
         this.currentSpeakerIndex = 0;
         this.gamePhase = 'discussion';
+        this.displayTurnOrder();
+        this.hideVoteResults();
         this.nextSpeaker();
     }
 
@@ -112,6 +115,7 @@ class HumanSpyGame {
 
         const currentPlayer = this.turnOrder[this.currentSpeakerIndex];
         document.getElementById('speaker-name').textContent = currentPlayer.name;
+        this.updateTurnOrderDisplay();
         
         if (currentPlayer.type === 'human') {
             this.showPlayerInput();
@@ -284,25 +288,18 @@ Respond with only the player's name.`;
         const maxVotes = Math.max(...Object.values(voteCounts));
         const winners = Object.keys(voteCounts).filter(name => voteCounts[name] === maxVotes);
         
+        // Display vote results
+        this.displayVoteResults(voteCounts, winners, maxVotes);
+        
         // Check if there's a majority and if they correctly identified the human
         const majorityThreshold = Math.ceil(this.players.length / 2);
         
         if (maxVotes >= majorityThreshold && winners.includes(this.playerName)) {
             this.endGame(false, `The bots correctly identified you as the human! You survived ${this.currentTurn} turns.`);
-        } else if (maxVotes >= majorityThreshold) {
-            // Bots voted for wrong player, human survives this round
-            this.score = this.currentTurn;
-            this.clearChat();
-            document.getElementById('voting-section').classList.add('hidden');
-            this.votes = {};
-            setTimeout(() => this.startTurn(), 2000);
         } else {
-            // No majority, continue game
+            // Human survives this round or no majority
             this.score = this.currentTurn;
-            this.clearChat();
             document.getElementById('voting-section').classList.add('hidden');
-            this.votes = {};
-            setTimeout(() => this.startTurn(), 2000);
         }
     }
 
@@ -354,6 +351,98 @@ Respond with only the player's name.`;
         document.getElementById(screenId).classList.add('active');
     }
 
+    displayTurnOrder() {
+        const turnOrderSection = document.getElementById('turn-order-section');
+        const turnOrderList = document.getElementById('turn-order-list');
+        
+        turnOrderSection.classList.remove('hidden');
+        turnOrderList.innerHTML = '';
+        
+        this.turnOrder.forEach((player, index) => {
+            const playerDiv = document.createElement('div');
+            playerDiv.className = 'turn-order-player';
+            playerDiv.innerHTML = `
+                <span class="turn-order-number">${index + 1}</span>
+                ${player.name}
+            `;
+            turnOrderList.appendChild(playerDiv);
+        });
+    }
+
+    updateTurnOrderDisplay() {
+        const playerDivs = document.querySelectorAll('.turn-order-player');
+        playerDivs.forEach((div, index) => {
+            div.classList.remove('current', 'completed');
+            if (index < this.currentSpeakerIndex) {
+                div.classList.add('completed');
+            } else if (index === this.currentSpeakerIndex) {
+                div.classList.add('current');
+            }
+        });
+    }
+
+    displayVoteResults(voteCounts, winners, maxVotes) {
+        const voteResultsSection = document.getElementById('vote-results-section');
+        const voteResultsContent = document.getElementById('vote-results-content');
+        
+        voteResultsSection.classList.remove('hidden');
+        
+        // Create summary
+        const majorityThreshold = Math.ceil(this.players.length / 2);
+        const hasWinner = maxVotes >= majorityThreshold;
+        const humanDetected = hasWinner && winners.includes(this.playerName);
+        
+        let summaryHTML = `<div class="vote-summary ${humanDetected ? 'human-detected' : 'human-safe'}">`;
+        if (humanDetected) {
+            summaryHTML += `<strong>🚨 HUMAN DETECTED!</strong><br>You were identified with ${maxVotes} votes. Game Over!`;
+        } else if (hasWinner) {
+            summaryHTML += `<strong>✅ You're Safe!</strong><br>${winners[0]} was suspected with ${maxVotes} votes, but they're not the human.`;
+        } else {
+            summaryHTML += `<strong>🤝 No Majority</strong><br>No clear consensus. You remain undetected!`;
+        }
+        summaryHTML += '</div>';
+        
+        // Create detailed vote breakdown
+        let detailsHTML = '<h4>Vote Breakdown:</h4>';
+        Object.entries(this.votes).forEach(([voter, voted]) => {
+            const voterType = this.players.find(p => p.name === voter)?.type || 'unknown';
+            const votedType = this.players.find(p => p.name === voted)?.type || 'unknown';
+            detailsHTML += `
+                <div class="vote-result-item">
+                    <span><strong>${voter}</strong> ${voterType === 'human' ? '(You)' : '(Bot)'}</span>
+                    <span>voted for <strong>${voted}</strong> ${votedType === 'human' ? '(You)' : '(Bot)'}</span>
+                </div>
+            `;
+        });
+        
+        // Vote count summary
+        detailsHTML += '<h4 style="margin-top: 15px;">Vote Counts:</h4>';
+        Object.entries(voteCounts)
+            .sort(([,a], [,b]) => b - a)
+            .forEach(([player, count]) => {
+                const playerType = this.players.find(p => p.name === player)?.type || 'unknown';
+                detailsHTML += `
+                    <div class="vote-result-item">
+                        <span><strong>${player}</strong> ${playerType === 'human' ? '(You)' : '(Bot)'}</span>
+                        <span><strong>${count} vote${count !== 1 ? 's' : ''}</strong></span>
+                    </div>
+                `;
+            });
+        
+        voteResultsContent.innerHTML = summaryHTML + detailsHTML;
+    }
+
+    hideVoteResults() {
+        document.getElementById('vote-results-section').classList.add('hidden');
+    }
+
+    continueToNextTurn() {
+        this.clearChat();
+        this.hideVoteResults();
+        this.votes = {};
+        this.startTurn();
+    }
+
     resetGame() {
         this.currentTurn = 0;
         this.score = 0;
@@ -363,6 +452,8 @@ Respond with only the player's name.`;
         this.gamePhase = 'setup';
         this.clearChat();
         document.getElementById('voting-section').classList.add('hidden');
+        document.getElementById('turn-order-section').classList.add('hidden');
+        this.hideVoteResults();
         this.hidePlayerInput();
         this.showScreen('setup-screen');
     }
