@@ -310,6 +310,39 @@ Respond naturally to the topic and keep the conversation going. Keep your respon
         }).join('\n');
     }
 
+    parseVoteResponse(response) {
+        const trimmedResponse = response.trim();
+        
+        // Try to extract REASONING and VOTE using regex
+        const reasoningMatch = trimmedResponse.match(/REASONING:\s*(.*?)(?=VOTE:|$)/s);
+        const voteMatch = trimmedResponse.match(/VOTE:\s*(.+?)(?:\n|$)/);
+        
+        let reasoning = "No reasoning provided";
+        let vote = "";
+        
+        if (reasoningMatch && reasoningMatch[1]) {
+            reasoning = reasoningMatch[1].trim();
+        }
+        
+        if (voteMatch && voteMatch[1]) {
+            vote = voteMatch[1].trim();
+        } else {
+            // Fallback: try to find a player name in the response
+            const playerNames = this.players.map(p => p.name);
+            for (const playerName of playerNames) {
+                if (trimmedResponse.includes(playerName)) {
+                    vote = playerName;
+                    break;
+                }
+            }
+        }
+        
+        return {
+            reasoning: reasoning,
+            vote: vote
+        };
+    }
+
     addMessage(name, text, type) {
         const messagesContainer = document.getElementById('chat-messages');
         const messageDiv = document.createElement('div');
@@ -354,7 +387,10 @@ Respond naturally to the topic and keep the conversation going. Keep your respon
     async submitVote() {
         if (!this.selectedVote) return;
         
-        this.votes[this.playerName] = this.selectedVote;
+        this.votes[this.playerName] = {
+            vote: this.selectedVote,
+            reasoning: "Human player vote (no reasoning provided)"
+        };
         
         // Hide voting options and show loading status
         document.getElementById('voting-options').style.display = 'none';
@@ -378,18 +414,38 @@ ${chatHistory}
 
 Players: ${playerList}
 
-Who seems most like a human? Respond with only the player's name.`;
+Analyze each player's messages and behavior to identify the human. Consider factors like:
+- Natural conversation flow and authenticity
+- Emotional responses and personal touches
+- Language patterns and imperfections
+- Consistency with human behavior
+
+You MUST respond in this exact format:
+REASONING: [Your detailed analysis of why you think this player is human, considering their messages, word choice, emotional responses, and any human-like qualities you observed]
+VOTE: [Player name]
+
+Example:
+REASONING: Bot3's messages show authentic emotional responses and natural language imperfections. They used casual expressions like "honestly" and shared what seems like a personal opinion rather than a perfectly crafted response. Their writing style feels more spontaneous and less polished than typical AI responses.
+VOTE: Bot3
+
+Now provide your analysis and vote:`;
 
                 const response = await this.callOpenRouter(player.model, prompt);
-                const votedPlayer = response.trim();
+                const parsedVote = this.parseVoteResponse(response);
                 
                 // Validate the vote
-                if (this.players.some(p => p.name === votedPlayer)) {
-                    this.votes[player.name] = votedPlayer;
+                if (this.players.some(p => p.name === parsedVote.vote)) {
+                    this.votes[player.name] = {
+                        vote: parsedVote.vote,
+                        reasoning: parsedVote.reasoning
+                    };
                 } else {
                     // Random vote if response is invalid
                     const randomPlayer = this.players[Math.floor(Math.random() * this.players.length)];
-                    this.votes[player.name] = randomPlayer.name;
+                    this.votes[player.name] = {
+                        vote: randomPlayer.name,
+                        reasoning: "Invalid response format - random vote assigned"
+                    };
                 }
                 
                 this.updateBotVotingStatus(player.name, 'complete');
@@ -407,8 +463,9 @@ Who seems most like a human? Respond with only the player's name.`;
 
     processVotes() {
         const voteCounts = {};
-        Object.values(this.votes).forEach(vote => {
-            voteCounts[vote] = (voteCounts[vote] || 0) + 1;
+        Object.values(this.votes).forEach(voteData => {
+            const votedPlayer = typeof voteData === 'string' ? voteData : voteData.vote;
+            voteCounts[votedPlayer] = (voteCounts[votedPlayer] || 0) + 1;
         });
         
         const maxVotes = Math.max(...Object.values(voteCounts));
@@ -539,8 +596,10 @@ Who seems most like a human? Respond with only the player's name.`;
         
         // Create detailed vote breakdown
         let detailsHTML = '<h4>Vote Breakdown:</h4>';
-        Object.entries(this.votes).forEach(([voter, voted]) => {
+        Object.entries(this.votes).forEach(([voter, voteData]) => {
             const voterPlayer = this.players.find(p => p.name === voter);
+            const voted = typeof voteData === 'string' ? voteData : voteData.vote;
+            const reasoning = typeof voteData === 'object' ? voteData.reasoning : 'No reasoning provided';
             const votedPlayer = this.players.find(p => p.name === voted);
             
             const voterType = voterPlayer?.type || 'unknown';
@@ -551,8 +610,13 @@ Who seems most like a human? Respond with only the player's name.`;
             
             detailsHTML += `
                 <div class="vote-result-item">
-                    <span><strong>${voter}</strong> ${voterLabel}</span>
-                    <span>voted for <strong>${voted}</strong> ${votedLabel}</span>
+                    <div class="vote-main">
+                        <span><strong>${voter}</strong> ${voterLabel}</span>
+                        <span>voted for <strong>${voted}</strong> ${votedLabel}</span>
+                    </div>
+                    <div class="vote-reasoning">
+                        <strong>Reasoning:</strong> ${reasoning}
+                    </div>
                 </div>
             `;
         });
@@ -639,8 +703,10 @@ Who seems most like a human? Respond with only the player's name.`;
         
         // Vote breakdown
         html += '<h4>Individual Votes:</h4>';
-        Object.entries(this.votes).forEach(([voter, voted]) => {
+        Object.entries(this.votes).forEach(([voter, voteData]) => {
             const voterPlayer = this.players.find(p => p.name === voter);
+            const voted = typeof voteData === 'string' ? voteData : voteData.vote;
+            const reasoning = typeof voteData === 'object' ? voteData.reasoning : 'No reasoning provided';
             const votedPlayer = this.players.find(p => p.name === voted);
             
             const voterType = voterPlayer?.type || 'unknown';
@@ -651,8 +717,13 @@ Who seems most like a human? Respond with only the player's name.`;
             
             html += `
                 <div class="vote-result-item">
-                    <span><strong>${voter}</strong> ${voterLabel}</span>
-                    <span>voted for <strong>${voted}</strong> ${votedLabel}</span>
+                    <div class="vote-main">
+                        <span><strong>${voter}</strong> ${voterLabel}</span>
+                        <span>voted for <strong>${voted}</strong> ${votedLabel}</span>
+                    </div>
+                    <div class="vote-reasoning">
+                        <strong>Reasoning:</strong> ${reasoning}
+                    </div>
                 </div>
             `;
         });
