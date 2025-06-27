@@ -58,19 +58,19 @@ class HumanSpyGame {
     }
 
     setDefaultModels() {
-        // Set default selection: 1x Sonnet 4, 1x Sonnet 3.7, 1x Haiku 3.5
-        // this.selectedModels.set('anthropic/claude-sonnet-4', {
-        //     displayName: 'Claude Sonnet 4',
-        //     count: 1
-        // });
-        // this.selectedModels.set('anthropic/claude-3.7-sonnet', {
-        //     displayName: 'Claude Sonnet 3.7',
-        //     count: 1
-        // });
-        // this.selectedModels.set('anthropic/claude-3.5-haiku', {
-        //     displayName: 'Claude Haiku 3.5',
-        //     count: 1
-        // });
+        // Set default selection: 1x Llama 8B, 1x GPT 4o-mini, 1x Sonnet 4
+        this.selectedModels.set('meta-llama/llama-3.1-8b-instruct', {
+            displayName: 'Llama 3.1 8B Instruct',
+            count: 1
+        });
+        this.selectedModels.set('openai/gpt-4o-mini', {
+            displayName: 'GPT-4o Mini',
+            count: 1
+        });
+        this.selectedModels.set('anthropic/claude-sonnet-4', {
+            displayName: 'Claude Sonnet 4',
+            count: 1
+        });
         // this.updateSelectedModelsDisplay();
     }
 
