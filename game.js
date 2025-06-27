@@ -14,15 +14,15 @@ class HumanSpyGame {
         this.gameRunning = false;
         
         this.modelDisplayNames = {
-            'claude-opus-4-20250514': 'Claude Opus 4',
-            'claude-sonnet-4-20250514': 'Claude Sonnet 4',
-            'claude-3-7-sonnet-20250219': 'Claude Sonnet 3.7',
-            'claude-3-5-haiku-20241022': 'Claude Haiku 3.5',
-            'claude-3-5-sonnet-20241022': 'Claude Sonnet 3.5 v2',
-            'claude-3-5-sonnet-20240620': 'Claude Sonnet 3.5',
-            'claude-3-opus-20240229': 'Claude Opus 3',
-            'claude-3-sonnet-20240229': 'Claude Sonnet 3',
-            'claude-3-haiku-20240307': 'Claude Haiku 3'
+            'anthropic/claude-opus-4': 'Claude Opus 4',
+            'anthropic/claude-sonnet-4': 'Claude Sonnet 4',
+            'anthropic/claude-3-7-sonnet': 'Claude Sonnet 3.7',
+            'anthropic/claude-3-5-haiku': 'Claude Haiku 3.5',
+            'anthropic/claude-3-5-sonnet': 'Claude Sonnet 3.5 v2',
+            'anthropic/claude-3-5-sonnet': 'Claude Sonnet 3.5',
+            'anthropic/claude-3-opus': 'Claude Opus 3',
+            'anthropic/claude-3-sonnet': 'Claude Sonnet 3',
+            'anthropic/claude-3-haiku': 'Claude Haiku 3'
         };
         
         this.initializeEventListeners();
