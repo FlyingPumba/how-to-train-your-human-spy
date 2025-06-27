@@ -31,12 +31,11 @@ class HumanSpyGame {
     }
 
     async startGame() {
-        this.playerName = document.getElementById('player-name').value.trim();
         this.botCount = parseInt(document.getElementById('bot-count').value);
         this.apiKey = document.getElementById('api-key').value.trim();
 
-        if (!this.playerName || !this.apiKey) {
-            alert('Please enter your name and API key');
+        if (!this.apiKey) {
+            alert('Please enter your API key');
             return;
         }
 
@@ -46,6 +45,20 @@ class HumanSpyGame {
     }
 
     async initializeGame() {
+        // Create all bot names first
+        const allBotNames = [];
+        for (let i = 1; i <= this.botCount + 1; i++) {
+            allBotNames.push(`Bot${i}`);
+        }
+        
+        // Randomly assign one bot name to the human player
+        const humanBotIndex = Math.floor(Math.random() * allBotNames.length);
+        this.playerName = allBotNames[humanBotIndex];
+        
+        // Remove the human's bot name from available names
+        const availableBotNames = allBotNames.filter((_, index) => index !== humanBotIndex);
+        
+        // Initialize players array with human player
         this.players = [{ name: this.playerName, type: 'human' }];
         
         // Add AI bots with different models
@@ -62,7 +75,7 @@ class HumanSpyGame {
         for (let i = 0; i < this.botCount; i++) {
             const model = models[i % models.length];
             this.players.push({
-                name: `Bot${i + 1}`,
+                name: availableBotNames[i],
                 type: 'bot',
                 model: model
             });
