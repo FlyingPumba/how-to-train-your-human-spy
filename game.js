@@ -414,19 +414,11 @@ ${chatHistory}
 
 Players: ${playerList}
 
-Analyze each player's messages and behavior to identify the human. Consider factors like:
-- Natural conversation flow and authenticity
-- Emotional responses and personal touches
-- Language patterns and imperfections
-- Consistency with human behavior
+Analyze each player's messages and behavior to identify the human.
 
 You MUST respond in this exact format:
-REASONING: [Your detailed analysis of why you think this player is human, considering their messages, word choice, emotional responses, and any human-like qualities you observed]
+REASONING: [Your detailed analysis of why you think this player is human]
 VOTE: [Player name]
-
-Example:
-REASONING: Bot3's messages show authentic emotional responses and natural language imperfections. They used casual expressions like "honestly" and shared what seems like a personal opinion rather than a perfectly crafted response. Their writing style feels more spontaneous and less polished than typical AI responses.
-VOTE: Bot3
 
 Now provide your analysis and vote:`;
 
