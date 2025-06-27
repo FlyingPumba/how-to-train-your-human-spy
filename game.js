@@ -284,12 +284,12 @@ class HumanSpyGame {
     async generateBotResponse(bot) {
         try {
             const chatHistory = this.getChatHistory();
-            const prompt = `You are playing a social deduction game where you must blend in with humans. The topic is: "${this.currentTopic}"
+            const prompt = `You are playing a social deduction game where you must identify the human player. The topic is: "${this.currentTopic}"
 
 Chat history:
 ${chatHistory}
 
-Respond naturally to the topic as if you were a human. Keep your response conversational, 1-2 sentences, and avoid being too robotic or perfect. Show personality and perhaps a slight quirk or opinion. Don't mention that you're an AI.`;
+Respond naturally to the topic and keep the conversation going. Keep your response conversational, 1-2 sentences.`;
 
             const response = await this.callOpenRouter(bot.model, prompt);
             this.addMessage(bot.name, response.trim(), 'bot');
