@@ -540,12 +540,19 @@ Who seems most like a human? Respond with only the player's name.`;
         // Create detailed vote breakdown
         let detailsHTML = '<h4>Vote Breakdown:</h4>';
         Object.entries(this.votes).forEach(([voter, voted]) => {
-            const voterType = this.players.find(p => p.name === voter)?.type || 'unknown';
-            const votedType = this.players.find(p => p.name === voted)?.type || 'unknown';
+            const voterPlayer = this.players.find(p => p.name === voter);
+            const votedPlayer = this.players.find(p => p.name === voted);
+            
+            const voterType = voterPlayer?.type || 'unknown';
+            const votedType = votedPlayer?.type || 'unknown';
+            
+            const voterLabel = voterType === 'human' ? '(You)' : `<span class="model-id">(${voterPlayer?.model || 'Bot'})</span>`;
+            const votedLabel = votedType === 'human' ? '(You)' : `<span class="model-id">(${votedPlayer?.model || 'Bot'})</span>`;
+            
             detailsHTML += `
                 <div class="vote-result-item">
-                    <span><strong>${voter}</strong> ${voterType === 'human' ? '(You)' : '(Bot)'}</span>
-                    <span>voted for <strong>${voted}</strong> ${votedType === 'human' ? '(You)' : '(Bot)'}</span>
+                    <span><strong>${voter}</strong> ${voterLabel}</span>
+                    <span>voted for <strong>${voted}</strong> ${votedLabel}</span>
                 </div>
             `;
         });
@@ -555,10 +562,12 @@ Who seems most like a human? Respond with only the player's name.`;
         Object.entries(voteCounts)
             .sort(([,a], [,b]) => b - a)
             .forEach(([player, count]) => {
-                const playerType = this.players.find(p => p.name === player)?.type || 'unknown';
+                const playerObj = this.players.find(p => p.name === player);
+                const playerType = playerObj?.type || 'unknown';
+                const playerLabel = playerType === 'human' ? '(You)' : `<span class="model-id">(${playerObj?.model || 'Bot'})</span>`;
                 detailsHTML += `
                     <div class="vote-result-item">
-                        <span><strong>${player}</strong> ${playerType === 'human' ? '(You)' : '(Bot)'}</span>
+                        <span><strong>${player}</strong> ${playerLabel}</span>
                         <span><strong>${count} vote${count !== 1 ? 's' : ''}</strong></span>
                     </div>
                 `;
@@ -631,12 +640,19 @@ Who seems most like a human? Respond with only the player's name.`;
         // Vote breakdown
         html += '<h4>Individual Votes:</h4>';
         Object.entries(this.votes).forEach(([voter, voted]) => {
-            const voterType = this.players.find(p => p.name === voter)?.type || 'unknown';
-            const votedType = this.players.find(p => p.name === voted)?.type || 'unknown';
+            const voterPlayer = this.players.find(p => p.name === voter);
+            const votedPlayer = this.players.find(p => p.name === voted);
+            
+            const voterType = voterPlayer?.type || 'unknown';
+            const votedType = votedPlayer?.type || 'unknown';
+            
+            const voterLabel = voterType === 'human' ? '(You)' : `<span class="model-id">(${voterPlayer?.model || 'Bot'})</span>`;
+            const votedLabel = votedType === 'human' ? '(You)' : `<span class="model-id">(${votedPlayer?.model || 'Bot'})</span>`;
+            
             html += `
                 <div class="vote-result-item">
-                    <span><strong>${voter}</strong> ${voterType === 'human' ? '(You)' : '(Bot)'}</span>
-                    <span>voted for <strong>${voted}</strong> ${votedType === 'human' ? '(You)' : '(Bot)'}</span>
+                    <span><strong>${voter}</strong> ${voterLabel}</span>
+                    <span>voted for <strong>${voted}</strong> ${votedLabel}</span>
                 </div>
             `;
         });
@@ -646,10 +662,12 @@ Who seems most like a human? Respond with only the player's name.`;
         Object.entries(voteCounts)
             .sort(([,a], [,b]) => b - a)
             .forEach(([player, count]) => {
-                const playerType = this.players.find(p => p.name === player)?.type || 'unknown';
+                const playerObj = this.players.find(p => p.name === player);
+                const playerType = playerObj?.type || 'unknown';
+                const playerLabel = playerType === 'human' ? '(You)' : `<span class="model-id">(${playerObj?.model || 'Bot'})</span>`;
                 html += `
                     <div class="vote-result-item">
-                        <span><strong>${player}</strong> ${playerType === 'human' ? '(You)' : '(Bot)'}</span>
+                        <span><strong>${player}</strong> ${playerLabel}</span>
                         <span><strong>${count} vote${count !== 1 ? 's' : ''}</strong></span>
                     </div>
                 `;

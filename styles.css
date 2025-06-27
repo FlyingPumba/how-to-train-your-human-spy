@@ -342,6 +342,13 @@ button:disabled {
     border-bottom: none;
 }
 
+.model-id {
+    font-family: monospace;
+    font-size: 0.85em;
+    opacity: 0.7;
+    color: #4CAF50;
+}
+
 .vote-summary {
     background: rgba(255, 255, 255, 0.1);
     padding: 15px;
