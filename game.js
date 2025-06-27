@@ -16,10 +16,10 @@ class HumanSpyGame {
         this.modelDisplayNames = {
             'anthropic/claude-opus-4': 'Claude Opus 4',
             'anthropic/claude-sonnet-4': 'Claude Sonnet 4',
-            'anthropic/claude-3-7-sonnet': 'Claude Sonnet 3.7',
-            'anthropic/claude-3-5-haiku': 'Claude Haiku 3.5',
-            'anthropic/claude-3-5-sonnet': 'Claude Sonnet 3.5 v2',
-            'anthropic/claude-3-5-sonnet': 'Claude Sonnet 3.5',
+            'anthropic/claude-3.7-sonnet': 'Claude Sonnet 3.7',
+            'anthropic/claude-3.5-haiku': 'Claude Haiku 3.5',
+            'anthropic/claude-3.5-sonnet': 'Claude Sonnet 3.5 v2',
+            'anthropic/claude-3.5-sonnet': 'Claude Sonnet 3.5',
             'anthropic/claude-3-opus': 'Claude Opus 3',
             'anthropic/claude-3-sonnet': 'Claude Sonnet 3',
             'anthropic/claude-3-haiku': 'Claude Haiku 3'
@@ -46,15 +46,15 @@ class HumanSpyGame {
 
     setDefaultModels() {
         // Set default selection: 1x Sonnet 4, 1x Sonnet 3.7, 1x Haiku 3.5
-        this.selectedModels.set('claude-sonnet-4-20250514', {
+        this.selectedModels.set('anthropic/claude-sonnet-4', {
             displayName: 'Claude Sonnet 4',
             count: 1
         });
-        this.selectedModels.set('claude-3-7-sonnet-20250219', {
+        this.selectedModels.set('anthropic/claude-3.7-sonnet', {
             displayName: 'Claude Sonnet 3.7',
             count: 1
         });
-        this.selectedModels.set('claude-3-5-haiku-20241022', {
+        this.selectedModels.set('anthropic/claude-3.5-haiku', {
             displayName: 'Claude Haiku 3.5',
             count: 1
         });
@@ -316,12 +316,15 @@ Respond naturally to the topic as if you were a human. Keep your response conver
         const votingOptions = document.getElementById('voting-options');
         votingOptions.innerHTML = '';
         
+        // Only show bot players as voting options (exclude human player)
         this.players.forEach(player => {
-            const option = document.createElement('div');
-            option.className = 'vote-option';
-            option.textContent = player.name;
-            option.addEventListener('click', () => this.selectVote(player.name));
-            votingOptions.appendChild(option);
+            if (player.type !== 'human') {
+                const option = document.createElement('div');
+                option.className = 'vote-option';
+                option.textContent = player.name;
+                option.addEventListener('click', () => this.selectVote(player.name));
+                votingOptions.appendChild(option);
+            }
         });
     }
 
@@ -340,14 +343,22 @@ Respond naturally to the topic as if you were a human. Keep your response conver
         
         this.votes[this.playerName] = this.selectedVote;
         
-        // Generate bot votes
-        for (const player of this.players) {
-            if (player.type === 'bot') {
-                try {
-                    const chatHistory = this.getChatHistory();
-                    const playerList = this.players.map(p => p.name).join(', ');
-                    
-                    const prompt = `You are playing a social deduction game. Based on the conversation, vote for who you think is the human player trying to blend in with AI bots.
+        // Hide voting options and show loading status
+        document.getElementById('voting-options').style.display = 'none';
+        document.getElementById('submit-vote').style.display = 'none';
+        this.showVotingStatus();
+        
+        // Generate bot votes with loading indicators
+        const botPlayers = this.players.filter(p => p.type === 'bot');
+        
+        for (const player of botPlayers) {
+            try {
+                this.updateBotVotingStatus(player.name, 'voting');
+                
+                const chatHistory = this.getChatHistory();
+                const playerList = this.players.map(p => p.name).join(', ');
+                
+                const prompt = `You are playing a social deduction game. Based on the conversation, vote for who you think is the human player trying to blend in with AI bots.
 
 Chat history:
 ${chatHistory}
@@ -356,23 +367,25 @@ Players: ${playerList}
 
 Who seems most like a human? Respond with only the player's name.`;
 
-                    const response = await this.callOpenRouter(player.model, prompt);
-                    const votedPlayer = response.trim();
-                    
-                    // Validate the vote
-                    if (this.players.some(p => p.name === votedPlayer)) {
-                        this.votes[player.name] = votedPlayer;
-                    } else {
-                        // Random vote if response is invalid
-                        const randomPlayer = this.players[Math.floor(Math.random() * this.players.length)];
-                        this.votes[player.name] = randomPlayer.name;
-                    }
-                } catch (error) {
-                    console.error('Error generating bot vote:', error);
-                    alert(`Error generating vote for ${player.name}: ${error.message}`);
-                    // Skip this bot's vote
-                    continue;
+                const response = await this.callOpenRouter(player.model, prompt);
+                const votedPlayer = response.trim();
+                
+                // Validate the vote
+                if (this.players.some(p => p.name === votedPlayer)) {
+                    this.votes[player.name] = votedPlayer;
+                } else {
+                    // Random vote if response is invalid
+                    const randomPlayer = this.players[Math.floor(Math.random() * this.players.length)];
+                    this.votes[player.name] = randomPlayer.name;
                 }
+                
+                this.updateBotVotingStatus(player.name, 'complete');
+            } catch (error) {
+                console.error('Error generating bot vote:', error);
+                alert(`Error generating vote for ${player.name}: ${error.message}`);
+                this.updateBotVotingStatus(player.name, 'error');
+                // Skip this bot's vote
+                continue;
             }
         }
         
@@ -412,6 +425,7 @@ Who seems most like a human? Respond with only the player's name.`;
         this.showScreen('game-over-screen');
         document.getElementById('final-score').textContent = `Final Score: ${this.score} turns`;
         document.getElementById('game-result').textContent = message;
+        this.displayFinalVoteResults();
     }
 
     async callOpenRouter(model, prompt) {
@@ -551,6 +565,86 @@ Who seems most like a human? Respond with only the player's name.`;
         this.startTurn();
     }
 
+    showVotingStatus() {
+        document.getElementById('voting-status').classList.remove('hidden');
+        const botVotingList = document.getElementById('bot-voting-list');
+        botVotingList.innerHTML = '';
+        
+        const botPlayers = this.players.filter(p => p.type === 'bot');
+        botPlayers.forEach(player => {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'bot-voting-status';
+            statusDiv.id = `voting-status-${player.name}`;
+            statusDiv.innerHTML = `
+                <span class="bot-name">${player.name}</span>
+                <span class="status-indicator">
+                    <div class="voting-loader"></div>
+                </span>
+            `;
+            botVotingList.appendChild(statusDiv);
+        });
+    }
+
+    updateBotVotingStatus(botName, status) {
+        const statusDiv = document.getElementById(`voting-status-${botName}`);
+        if (!statusDiv) return;
+        
+        const statusIndicator = statusDiv.querySelector('.status-indicator');
+        if (status === 'voting') {
+            statusIndicator.innerHTML = '<div class="voting-loader"></div>';
+        } else if (status === 'complete') {
+            statusIndicator.innerHTML = '<span class="vote-complete">✓ Voted</span>';
+        } else if (status === 'error') {
+            statusIndicator.innerHTML = '<span style="color: #f44336;">✗ Error</span>';
+        }
+    }
+
+    displayFinalVoteResults() {
+        const finalVoteDisplay = document.getElementById('final-vote-display');
+        
+        if (Object.keys(this.votes).length === 0) {
+            finalVoteDisplay.innerHTML = '<p>No votes were cast.</p>';
+            return;
+        }
+        
+        // Calculate vote counts
+        const voteCounts = {};
+        Object.values(this.votes).forEach(vote => {
+            voteCounts[vote] = (voteCounts[vote] || 0) + 1;
+        });
+        
+        let html = '<h3>Final Vote Results</h3>';
+        
+        // Vote breakdown
+        html += '<h4>Individual Votes:</h4>';
+        Object.entries(this.votes).forEach(([voter, voted]) => {
+            const voterType = this.players.find(p => p.name === voter)?.type || 'unknown';
+            const votedType = this.players.find(p => p.name === voted)?.type || 'unknown';
+            html += `
+                <div class="vote-result-item">
+                    <span><strong>${voter}</strong> ${voterType === 'human' ? '(You)' : '(Bot)'}</span>
+                    <span>voted for <strong>${voted}</strong> ${votedType === 'human' ? '(You)' : '(Bot)'}</span>
+                </div>
+            `;
+        });
+        
+        // Vote count summary
+        html += '<h4 style="margin-top: 20px;">Vote Totals:</h4>';
+        Object.entries(voteCounts)
+            .sort(([,a], [,b]) => b - a)
+            .forEach(([player, count]) => {
+                const playerType = this.players.find(p => p.name === player)?.type || 'unknown';
+                html += `
+                    <div class="vote-result-item">
+                        <span><strong>${player}</strong> ${playerType === 'human' ? '(You)' : '(Bot)'}</span>
+                        <span><strong>${count} vote${count !== 1 ? 's' : ''}</strong></span>
+                    </div>
+                `;
+            });
+        
+        finalVoteDisplay.innerHTML = html;
+    }
+
     resetGame() {
         this.currentTurn = 0;
         this.score = 0;
@@ -562,9 +656,13 @@ Who seems most like a human? Respond with only the player's name.`;
         this.setDefaultModels();
         this.clearChat();
         document.getElementById('voting-section').classList.add('hidden');
+        document.getElementById('voting-status').classList.add('hidden');
         document.getElementById('turn-order-section').classList.add('hidden');
         this.hideVoteResults();
         this.hidePlayerInput();
+        // Reset voting options display
+        document.getElementById('voting-options').style.display = 'block';
+        document.getElementById('submit-vote').style.display = 'block';
         this.showScreen('setup-screen');
     }
 }

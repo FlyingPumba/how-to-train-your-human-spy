@@ -364,6 +364,65 @@ button:disabled {
     margin-top: 15px;
 }
 
+.voting-status {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.voting-status h4 {
+    margin-bottom: 15px;
+    text-align: center;
+    color: #4CAF50;
+}
+
+.bot-voting-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 15px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+}
+
+.bot-voting-status:last-child {
+    margin-bottom: 0;
+}
+
+.bot-name {
+    font-weight: bold;
+}
+
+.voting-loader {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #4CAF50;
+    animation: spin 1s linear infinite;
+}
+
+.vote-complete {
+    color: #4CAF50;
+    font-size: 0.9em;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.final-vote-results {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
 #chat-section {
     height: 400px;
     margin-bottom: 20px;
