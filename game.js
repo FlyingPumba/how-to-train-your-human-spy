@@ -14,6 +14,7 @@ class HumanSpyGame {
         this.gameRunning = false;
         
         this.modelDisplayNames = {
+            // Anthropic models
             'anthropic/claude-opus-4': 'Claude Opus 4',
             'anthropic/claude-sonnet-4': 'Claude Sonnet 4',
             'anthropic/claude-3.7-sonnet': 'Claude Sonnet 3.7',
@@ -22,7 +23,19 @@ class HumanSpyGame {
             'anthropic/claude-3.5-sonnet': 'Claude Sonnet 3.5',
             'anthropic/claude-3-opus': 'Claude Opus 3',
             'anthropic/claude-3-sonnet': 'Claude Sonnet 3',
-            'anthropic/claude-3-haiku': 'Claude Haiku 3'
+            'anthropic/claude-3-haiku': 'Claude Haiku 3',
+            // Meta models
+            'meta-llama/llama-3.1-8b-instruct': 'Llama 3.1 8B Instruct',
+            'meta-llama/llama-3.3-70b-instruct': 'Llama 3.3 70B Instruct',
+            // Google models
+            'google/gemma-3-27b-it': 'Gemma 3 27B IT',
+            'google/gemma-3-4b-it': 'Gemma 3 4B IT',
+            'google/gemma-3-12b-it': 'Gemma 3 12B IT',
+            'google/gemini-2.5-flash': 'Gemini 2.5 Flash',
+            'google/gemini-2.5-pro': 'Gemini 2.5 Pro',
+            // OpenAI models
+            'openai/gpt-4o': 'GPT-4o',
+            'openai/gpt-4o-mini': 'GPT-4o Mini',
         };
         
         this.initializeEventListeners();
@@ -46,19 +59,19 @@ class HumanSpyGame {
 
     setDefaultModels() {
         // Set default selection: 1x Sonnet 4, 1x Sonnet 3.7, 1x Haiku 3.5
-        this.selectedModels.set('anthropic/claude-sonnet-4', {
-            displayName: 'Claude Sonnet 4',
-            count: 1
-        });
-        this.selectedModels.set('anthropic/claude-3.7-sonnet', {
-            displayName: 'Claude Sonnet 3.7',
-            count: 1
-        });
-        this.selectedModels.set('anthropic/claude-3.5-haiku', {
-            displayName: 'Claude Haiku 3.5',
-            count: 1
-        });
-        this.updateSelectedModelsDisplay();
+        // this.selectedModels.set('anthropic/claude-sonnet-4', {
+        //     displayName: 'Claude Sonnet 4',
+        //     count: 1
+        // });
+        // this.selectedModels.set('anthropic/claude-3.7-sonnet', {
+        //     displayName: 'Claude Sonnet 3.7',
+        //     count: 1
+        // });
+        // this.selectedModels.set('anthropic/claude-3.5-haiku', {
+        //     displayName: 'Claude Haiku 3.5',
+        //     count: 1
+        // });
+        // this.updateSelectedModelsDisplay();
     }
 
     addModel() {
