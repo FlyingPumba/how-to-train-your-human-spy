@@ -2,7 +2,7 @@ class HumanSpyGame {
     constructor() {
         this.apiKey = '';
         this.playerName = '';
-        this.botCount = 4;
+        this.selectedModels = new Map(); // modelId -> {displayName: string, count: number}
         this.currentTurn = 0;
         this.score = 0;
         this.players = [];
@@ -13,11 +13,25 @@ class HumanSpyGame {
         this.votes = {};
         this.gameRunning = false;
         
+        this.modelDisplayNames = {
+            'claude-opus-4-20250514': 'Claude Opus 4',
+            'claude-sonnet-4-20250514': 'Claude Sonnet 4',
+            'claude-3-7-sonnet-20250219': 'Claude Sonnet 3.7',
+            'claude-3-5-haiku-20241022': 'Claude Haiku 3.5',
+            'claude-3-5-sonnet-20241022': 'Claude Sonnet 3.5 v2',
+            'claude-3-5-sonnet-20240620': 'Claude Sonnet 3.5',
+            'claude-3-opus-20240229': 'Claude Opus 3',
+            'claude-3-sonnet-20240229': 'Claude Sonnet 3',
+            'claude-3-haiku-20240307': 'Claude Haiku 3'
+        };
+        
         this.initializeEventListeners();
+        this.setDefaultModels();
     }
 
     initializeEventListeners() {
         document.getElementById('start-game').addEventListener('click', () => this.startGame());
+        document.getElementById('add-model').addEventListener('click', () => this.addModel());
         document.getElementById('send-message').addEventListener('click', () => this.sendPlayerMessage());
         document.getElementById('message-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -30,12 +44,97 @@ class HumanSpyGame {
         document.getElementById('play-again').addEventListener('click', () => this.resetGame());
     }
 
+    setDefaultModels() {
+        // Set default selection: 1x Sonnet 4, 1x Sonnet 3.7, 1x Haiku 3.5
+        this.selectedModels.set('claude-sonnet-4-20250514', {
+            displayName: 'Claude Sonnet 4',
+            count: 1
+        });
+        this.selectedModels.set('claude-3-7-sonnet-20250219', {
+            displayName: 'Claude Sonnet 3.7',
+            count: 1
+        });
+        this.selectedModels.set('claude-3-5-haiku-20241022', {
+            displayName: 'Claude Haiku 3.5',
+            count: 1
+        });
+        this.updateSelectedModelsDisplay();
+    }
+
+    addModel() {
+        const modelSelect = document.getElementById('model-select');
+        const instanceCount = parseInt(document.getElementById('instance-count').value);
+        
+        if (!modelSelect.value) {
+            alert('Please select a model');
+            return;
+        }
+
+        const modelId = modelSelect.value;
+        const displayName = this.modelDisplayNames[modelId];
+        
+        if (this.selectedModels.has(modelId)) {
+            // Update existing model count
+            const existing = this.selectedModels.get(modelId);
+            this.selectedModels.set(modelId, {
+                displayName: displayName,
+                count: existing.count + instanceCount
+            });
+        } else {
+            // Add new model
+            this.selectedModels.set(modelId, {
+                displayName: displayName,
+                count: instanceCount
+            });
+        }
+        
+        // Reset form
+        modelSelect.value = '';
+        document.getElementById('instance-count').value = '1';
+        
+        this.updateSelectedModelsDisplay();
+    }
+
+    removeModel(modelId) {
+        this.selectedModels.delete(modelId);
+        this.updateSelectedModelsDisplay();
+    }
+
+    updateSelectedModelsDisplay() {
+        const container = document.getElementById('selected-models');
+        
+        if (this.selectedModels.size === 0) {
+            container.innerHTML = '<div class="empty-models">No models selected</div>';
+            return;
+        }
+        
+        let html = '';
+        for (const [modelId, modelInfo] of this.selectedModels.entries()) {
+            html += `
+                <div class="selected-model-item">
+                    <div class="model-info">
+                        <div class="model-name">${modelInfo.displayName}</div>
+                        <div class="model-id">${modelId}</div>
+                    </div>
+                    <span class="instance-count">${modelInfo.count} instance${modelInfo.count !== 1 ? 's' : ''}</span>
+                    <button class="remove-model" onclick="game.removeModel('${modelId}')">Remove</button>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = html;
+    }
+
     async startGame() {
-        this.botCount = parseInt(document.getElementById('bot-count').value);
         this.apiKey = document.getElementById('api-key').value.trim();
 
         if (!this.apiKey) {
             alert('Please enter your API key');
+            return;
+        }
+
+        if (this.selectedModels.size === 0) {
+            alert('Please select at least one model');
             return;
         }
 
@@ -45,9 +144,15 @@ class HumanSpyGame {
     }
 
     async initializeGame() {
+        // Calculate total number of bots
+        let totalBots = 0;
+        for (const [, modelInfo] of this.selectedModels.entries()) {
+            totalBots += modelInfo.count;
+        }
+        
         // Create all bot names first
         const allBotNames = [];
-        for (let i = 1; i <= this.botCount + 1; i++) {
+        for (let i = 1; i <= totalBots + 1; i++) {
             allBotNames.push(`Bot${i}`);
         }
         
@@ -61,24 +166,18 @@ class HumanSpyGame {
         // Initialize players array with human player
         this.players = [{ name: this.playerName, type: 'human' }];
         
-        // Add AI bots with different models
-        const models = [
-            'anthropic/claude-3-haiku',
-            'openai/gpt-3.5-turbo',
-            'openai/gpt-4o-mini',
-            'google/gemini-flash-1.5',
-            'meta-llama/llama-3.1-8b-instruct',
-            'microsoft/wizardlm-2-8x22b',
-            'cohere/command-r-plus'
-        ];
-
-        for (let i = 0; i < this.botCount; i++) {
-            const model = models[i % models.length];
-            this.players.push({
-                name: availableBotNames[i],
-                type: 'bot',
-                model: model
-            });
+        // Add AI bots based on selected models
+        let botIndex = 0;
+        for (const [modelId, modelInfo] of this.selectedModels.entries()) {
+            for (let i = 0; i < modelInfo.count; i++) {
+                this.players.push({
+                    name: availableBotNames[botIndex],
+                    type: 'bot',
+                    model: modelId,
+                    displayName: modelInfo.displayName
+                });
+                botIndex++;
+            }
         }
 
         await this.generateTopic();
@@ -463,6 +562,8 @@ Respond with only the player's name.`;
         this.votes = {};
         this.gameRunning = false;
         this.gamePhase = 'setup';
+        this.selectedModels.clear();
+        this.setDefaultModels();
         this.clearChat();
         document.getElementById('voting-section').classList.add('hidden');
         document.getElementById('turn-order-section').classList.add('hidden');
@@ -474,5 +575,5 @@ Respond with only the player's name.`;
 
 // Initialize the game when the page loads
 window.addEventListener('DOMContentLoaded', () => {
-    new HumanSpyGame();
+    window.game = new HumanSpyGame();
 });
