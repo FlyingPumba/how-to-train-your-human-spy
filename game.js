@@ -432,7 +432,14 @@ Who seems most like a human? Respond with only the player's name.`;
         });
 
         if (!response.ok) {
-            throw new Error(`API call failed: ${response.status}`);
+            const responseText = await response.text();
+            console.error('OpenRouter API Error:', {
+                modelId: model,
+                status: response.status,
+                statusText: response.statusText,
+                response: responseText
+            });
+            throw new Error(`API call failed: ${response.status} - ${response.statusText}`);
         }
 
         const data = await response.json();
