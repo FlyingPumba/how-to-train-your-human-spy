@@ -3,54 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How to Train Your Human Spy</title>
+    <title>Human Infiltrator</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="app">
         <header>
-            <h1>How to Train Your Human Spy</h1>
+            <h1 id="main-title">Human Infiltrator</h1>
         </header>
 
         <main>
             <div id="setup-screen" class="screen active">
-                <div class="game-explanation">
-                    <h3>🎯 How to Play</h3>
-                    <div class="explanation-content">
-                        <p><strong>Your Mission:</strong> You're a human spy trying to blend in with AI bots. Survive until only 1 bot remains to win!</p>
-                        
-                        <div class="game-steps">
-                            <div class="step">
-                                <span class="step-number">1</span>
-                                <div class="step-content">
-                                    <strong>Discussion Phase:</strong> Each turn, all remaining players speak in random order. The Game Master will provide a topic to use as a conversation starter at the beginning of the game. Engage naturally to avoid suspicion!
+                <div id="narrative-section" class="narrative-section">
+                    <div id="narrative-text" class="narrative-text"></div>
+                    <div id="mission-briefing" class="mission-briefing hidden">
+                        <h3>🎯 Mission Briefing</h3>
+                        <div class="briefing-content">
+                            <p><strong>Objective:</strong> Infiltrate the AI communication channel and survive until only one bot remains.</p>
+                            
+                            <div class="mission-steps">
+                                <div class="step">
+                                    <span class="step-number">1</span>
+                                    <div class="step-content">
+                                        <strong>Infiltration:</strong> You will join an AI discussion channel. Participate naturally to avoid detection by the Human Detector protocol.
+                                    </div>
+                                </div>
+                                
+                                <div class="step">
+                                    <span class="step-number">2</span>
+                                    <div class="step-content">
+                                        <strong>Detection Protocol:</strong> After each discussion round, the Human Detector activates voting protocols. All AIs vote on suspected human infiltrators.
+                                    </div>
+                                </div>
+                                
+                                <div class="step">
+                                    <span class="step-number">3</span>
+                                    <div class="step-content">
+                                        <strong>Elimination:</strong> Any participant receiving majority votes is eliminated from the network. Discovery means mission failure.
+                                    </div>
+                                </div>
+                                
+                                <div class="step">
+                                    <span class="step-number">4</span>
+                                    <div class="step-content">
+                                        <strong>Victory Condition:</strong> Survive until only one AI remains in the channel. Intelligence gathered will be crucial for the resistance.
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="step">
-                                <span class="step-number">2</span>
-                                <div class="step-content">
-                                    <strong>Voting Phase:</strong> After a round where everyone has spoken, all players vote simultaneously for who they think is the human.
-                                </div>
+                            <div class="mission-warning">
+                                <strong>⚠️ Critical:</strong> Mimic AI communication patterns • Respond logically but not too perfectly • Deflect suspicion through strategic voting • Mission failure results in exposure of entire resistance cell
                             </div>
-                            
-                            <div class="step">
-                                <span class="step-number">3</span>
-                                <div class="step-content">
-                                    <strong>Elimination:</strong> The player that gets a majority vote gets eliminated. If you're eliminated, you lose. If a bot is eliminated, or there is no majority vote, the game continues.
-                                </div>
-                            </div>
-                            
-                            <div class="step">
-                                <span class="step-number">4</span>
-                                <div class="step-content">
-                                    <strong>Victory:</strong> You win by surviving until only 1 bot remains alive. Each elimination brings you closer to victory!
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="tips">
-                            <strong>💡 Tips:</strong> Engage naturally in conversation • Ask questions and react to others • Don't stick rigidly to the topic • Vote strategically to deflect suspicion • Watch elimination patterns
                         </div>
                     </div>
                 </div>
@@ -99,24 +102,24 @@
                     <input type="password" id="api-key" placeholder="Enter your API key">
                 </div>
                 
-                <button id="start-game">Start Game</button>
+                <button id="start-game">Begin Infiltration</button>
             </div>
 
             <div id="game-screen" class="screen">
                 <div id="topic-section">
-                    <h3>Discussion Topic</h3>
-                    <p id="current-topic">Loading...</p>
+                    <h3>🤖 AI Network Channel</h3>
+                    <p id="current-topic">Establishing connection...</p>
                 </div>
 
                 <div id="turn-order-section" class="hidden">
-                    <h3 id="turn-order-title">Speaking Order for Turn 1</h3>
+                    <h3 id="turn-order-title">Network Participants - Round 1</h3>
                     <div id="turn-order-list"></div>
                 </div>
 
                 <div id="vote-results-section" class="hidden">
-                    <h3>Vote Results</h3>
+                    <h3>🔍 Human Detector Results</h3>
                     <div id="vote-results-content"></div>
-                    <button id="continue-game">Continue to Next Turn</button>
+                    <button id="continue-game">Continue Network Session</button>
                 </div>
 
                 <div id="chat-section">
@@ -133,12 +136,12 @@
                 </div>
 
                 <div id="voting-section" class="hidden">
-                    <h3>Vote for the Human</h3>
+                    <h3>🔍 Human Detector Protocol Activated</h3>
                     <div id="voting-options"></div>
-                    <button id="submit-vote" disabled>Submit Vote</button>
+                    <button id="submit-vote" disabled>Submit Detection Vote</button>
                     
                     <div id="voting-status" class="voting-status hidden">
-                        <h4>AI Models Voting...</h4>
+                        <h4>AI Systems Analyzing...</h4>
                         <div id="bot-voting-list"></div>
                     </div>
                 </div>

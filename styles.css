@@ -5,10 +5,11 @@
 }
 
 body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    color: #fff;
+    font-family: 'Courier New', monospace;
+    background: linear-gradient(135deg, #0a0a0a, #1a1a2e, #16213e);
+    color: #00ff41;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
 #app {
@@ -25,7 +26,9 @@ header {
 h1 {
     font-size: 2.5em;
     margin-bottom: 10px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    text-shadow: 0 0 20px #00ff41, 0 0 40px #00ff41, 0 0 60px #00ff41;
+    color: #00ff41;
+    font-weight: bold;
 }
 
 #game-info {
@@ -37,11 +40,12 @@ h1 {
 
 .screen {
     display: none;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 20, 40, 0.9);
     backdrop-filter: blur(10px);
     border-radius: 15px;
     padding: 30px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 32px rgba(0,255,65,0.2);
+    border: 1px solid rgba(0,255,65,0.3);
 }
 
 .screen.active {
@@ -52,19 +56,63 @@ h1 {
     margin-bottom: 20px;
 }
 
-.game-explanation {
-    background: rgba(255, 255, 255, 0.05);
+/* Narrative Section */
+.narrative-section {
+    min-height: 400px;
+    margin-bottom: 30px;
+}
+
+.narrative-text {
+    background: rgba(0, 0, 0, 0.8);
     border-radius: 12px;
     padding: 25px;
     margin-bottom: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0,255,65,0.3);
+    font-family: 'Courier New', monospace;
+    font-size: 1.1em;
+    line-height: 1.6;
+    min-height: 300px;
 }
 
-.game-explanation h3 {
-    color: #4CAF50;
+.mission-briefing {
+    background: rgba(0, 20, 40, 0.9);
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(0,255,65,0.3);
+}
+
+.mission-briefing h3 {
+    color: #ff4444;
     margin-bottom: 20px;
     font-size: 1.4em;
     text-align: center;
+    text-shadow: 0 0 10px #ff4444;
+}
+
+.briefing-content p {
+    font-size: 1.1em;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.mission-steps {
+    margin: 20px 0;
+}
+
+.mission-warning {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+    font-size: 0.95em;
+    line-height: 1.5;
+}
+
+.mission-warning strong {
+    color: #ff4444;
 }
 
 .explanation-content p {

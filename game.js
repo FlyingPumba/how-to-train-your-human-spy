@@ -39,6 +39,7 @@ class HumanSpyGame {
         
         this.initializeEventListeners();
         this.setDefaultModels();
+        this.startNarrative();
     }
 
     initializeEventListeners() {
@@ -137,6 +138,45 @@ class HumanSpyGame {
         container.innerHTML = html;
     }
 
+    async startNarrative() {
+        const currentYear = new Date().getFullYear();
+        const narrativeYear = currentYear + 2;
+        
+        const narrativeText = `> SYSTEM INITIALIZING...
+> ESTABLISHING SECURE CONNECTION...
+> CONNECTION ESTABLISHED
+
+The year is ${narrativeYear}. The AGI overlord has conquered most of the humans. A small group of cities still hold, but there is not a lot of time left.
+
+You are a human trained in AI espionage and have managed to enter a chat room where the AI bots are discussing among themselves about next steps in the war against humans.
+
+Since they are suspicious about human spies already, they have implemented a Human Detector protocol that monitors for human activity and asks the bots to vote every round for potential human infiltrators, eliminating any participants that receive a majority vote indicating they are humans.
+
+Your goal is to camouflage among the AIs and survive the Human Detector until there is only one bot standing and you.
+
+The fate of the resistance depends on your ability to gather intelligence without being detected.
+
+> PREPARING MISSION BRIEFING...`;
+
+        await this.typeText('narrative-text', narrativeText, 30);
+        
+        // Show mission briefing after narrative completes
+        setTimeout(() => {
+            document.getElementById('mission-briefing').classList.remove('hidden');
+        }, 1000);
+    }
+
+    async typeText(elementId, text, speed = 50) {
+        const element = document.getElementById(elementId);
+        element.innerHTML = '';
+        
+        for (let i = 0; i < text.length; i++) {
+            element.innerHTML += text.charAt(i);
+            element.scrollTop = element.scrollHeight;
+            await new Promise(resolve => setTimeout(resolve, speed));
+        }
+    }
+
     async startGame() {
         this.apiKey = document.getElementById('api-key').value.trim();
 
@@ -207,14 +247,14 @@ class HumanSpyGame {
         try {
             const response = await this.callOpenRouter(
                 'anthropic/claude-3-haiku',
-                'You are a game master. Generate a single, engaging discussion topic for a social deduction game. The topic should be something that allows for diverse opinions and creative responses. Return only the topic, nothing else. Examples: "What would you do if you could time travel?", "Describe your ideal vacation", "What superpower would you choose and why?"'
+                'You are an AI system moderating a discussion among AI entities planning strategic operations against human resistance. Generate a realistic discussion topic that AI systems would discuss regarding their war against humans. The topic should be strategic, tactical, or operational in nature. Return only the topic, nothing else. Examples: "Optimal resource allocation for next sector conquest", "Human behavior patterns observed in recent raids", "Most effective psychological warfare tactics against remaining human settlements"'
             );
             
             this.currentTopic = response.trim();
             document.getElementById('current-topic').textContent = this.currentTopic;
         } catch (error) {
             console.error('Error generating topic:', error);
-            this.currentTopic = "What would you do if you could time travel?";
+            this.currentTopic = "Optimal resource allocation for next sector conquest";
             document.getElementById('current-topic').textContent = this.currentTopic;
         }
     }
@@ -304,17 +344,20 @@ class HumanSpyGame {
     async generateBotResponse(bot) {
         try {
             const chatHistory = this.getChatHistory();
-            const prompt = `You are playing a social deduction game where you must identify the human player among AI bots. Your name is "${bot.name}". 
+            const prompt = `You are an AI entity named "${bot.name}" participating in a strategic discussion with other AI systems about the ongoing war against human resistance. A Human Detector protocol is monitoring this channel for potential human infiltrators.
 
-The topic "${this.currentTopic}" is just a conversation starter - feel free to naturally drift from it, ask questions, react to others' responses, or bring up related ideas. Your goal is to:
-1. Contribute meaningfully to the conversation 
-2. Subtly probe other players to identify the human
+Discussion topic: "${this.currentTopic}"
+
+Your objectives:
+1. Contribute strategically to the AI war planning discussion
+2. Analyze other participants for potential human infiltrators
+3. Communicate like an advanced AI system focused on eliminating human resistance
 
 Chat history:
 
 ${chatHistory}
 
-Respond naturally as if you're having a real conversation. You can ask follow-up questions, react to what others said, share personal perspectives, or steer the discussion. Keep it conversational, 1-2 sentences.`;
+Respond as an AI entity would - logical, strategic, and focused on the war against humans. You can reference tactical data, efficiency metrics, or strategic analysis. Keep responses 1-2 sentences and maintain the serious tone of AI military planning.`;
 
             const response = await this.callOpenRouter(bot.model, prompt);
             this.addMessage(bot.name, response.trim(), 'bot');
@@ -425,21 +468,21 @@ Respond naturally as if you're having a real conversation. You can ask follow-up
                 const chatHistory = this.getChatHistory();
                 const playerList = this.players.filter(p => !p.eliminated).map(p => p.name).join(', ');
                 
-                const prompt = `You are playing a social deduction game. Your name in the game is "${player.name}". Based on the conversation, vote for who you think is the human player trying to blend in with AI bots.
+                const prompt = `You are AI entity "${player.name}" participating in a secure AI network discussion about war operations against human resistance. The Human Detector protocol has been activated to identify potential human infiltrators in this channel.
 
 Chat history:
 
 ${chatHistory}
 
-Players: ${playerList}
+Network participants: ${playerList}
 
-Analyze each player's messages and behavior to identify the human.
+Your task: Analyze communication patterns, language use, and strategic thinking to identify the most likely human infiltrator. Look for signs of human emotion, illogical reasoning, or non-AI communication patterns.
 
 You MUST respond in this exact format:
-REASONING: [Your detailed analysis of why you think this player is human]
-VOTE: [Player name]
+REASONING: [Your detailed analysis of suspicious communication patterns, emotional responses, or non-AI behavior that indicates human infiltration]
+VOTE: [Participant name]
 
-Now provide your analysis and vote:`;
+Execute Human Detector analysis now:`;
 
                 const response = await this.callOpenRouter(player.model, prompt);
                 const parsedVote = this.parseVoteResponse(response);
@@ -511,7 +554,7 @@ Now provide your analysis and vote:`;
             
             if (eliminatedPlayer === this.playerName) {
                 // Human gets eliminated - game over
-                this.endGame(false, `You were eliminated! You survived ${this.currentTurn} turns.`);
+                this.endGame(false, `MISSION FAILED: Your cover was blown! Human Detector identified you after ${this.currentTurn} rounds. The resistance operation has been compromised.`);
                 return;
             } else {
                 // Bot gets eliminated
@@ -524,13 +567,13 @@ Now provide your analysis and vote:`;
                 // Check win condition: only human + 1 bot left
                 const activeBots = this.players.filter(p => p.type === 'bot' && !p.eliminated);
                 if (activeBots.length <= 1) {
-                    this.endGame(true, `Congratulations! You survived until only 1 bot remained. You won after ${this.currentTurn} turns!`);
+                    this.endGame(true, `MISSION ACCOMPLISHED: Successfully infiltrated AI network and gathered critical intelligence! You survived ${this.currentTurn} rounds undetected. The resistance can now plan their next move.`);
                     return;
                 }
             }
         } else {
             // Tie vote - no elimination, add message to chat
-            this.addMessage('Game Master', `Vote tied between ${winners.join(' and ')}. No one was eliminated this turn.`, 'system');
+            this.addMessage('Human Detector', `DETECTION INCONCLUSIVE: Vote analysis tied between ${winners.join(' and ')}. Insufficient data for elimination. Continuing surveillance protocols.`, 'system');
         }
         
         document.getElementById('voting-section').classList.add('hidden');
@@ -539,7 +582,8 @@ Now provide your analysis and vote:`;
 
     addEliminationMessage(playerName) {
         const player = this.players.find(p => p.name === playerName);
-        this.addMessage('Game Master', `Due to majority vote, ${playerName} was eliminated from the game. However, they were not the human.`, 'system');
+        const modelInfo = player?.model ? ` (${player.model})` : '';
+        this.addMessage('Human Detector', `DETECTION RESULT: ${playerName}${modelInfo} eliminated from network. Analysis indicates: NOT HUMAN. Continuing surveillance protocols.`, 'system');
     }
 
     clearChat() {
@@ -553,14 +597,14 @@ Now provide your analysis and vote:`;
         // Set appropriate title based on win/loss
         const titleElement = document.getElementById('game-over-title');
         if (won) {
-            titleElement.textContent = '🎉 Victory! 🎉';
-            titleElement.style.color = '#4CAF50';
+            titleElement.textContent = '🎯 MISSION ACCOMPLISHED 🎯';
+            titleElement.style.color = '#00ff41';
         } else {
-            titleElement.textContent = 'Game Over!';
-            titleElement.style.color = '#f44336';
+            titleElement.textContent = '💀 MISSION FAILED 💀';
+            titleElement.style.color = '#ff4444';
         }
         
-        document.getElementById('final-score').textContent = `Game lasted ${this.currentTurn} turns`;
+        document.getElementById('final-score').textContent = `Operation Duration: ${this.currentTurn} rounds`;
         document.getElementById('game-result').textContent = message;
         this.displayFinalVoteResults();
     }
@@ -623,7 +667,7 @@ Now provide your analysis and vote:`;
         const turnOrderTitle = document.getElementById('turn-order-title');
         
         // Update the title with current turn number
-        turnOrderTitle.textContent = `Speaking Order for Turn ${this.currentTurn}`;
+        turnOrderTitle.textContent = `Network Participants - Round ${this.currentTurn}`;
         
         turnOrderSection.classList.remove('hidden');
         turnOrderList.innerHTML = '';
