@@ -296,7 +296,7 @@ class HumanSpyGame {
     async generateBotResponse(bot) {
         try {
             const chatHistory = this.getChatHistory();
-            const prompt = `You are playing a social deduction game where you must identify the human player. The topic is: "${this.currentTopic}"
+            const prompt = `You are playing a social deduction game where you must identify the human player. Your name in the game is "${bot.name}". The topic is: "${this.currentTopic}"
 
 Chat history:
 ${chatHistory}
@@ -419,7 +419,7 @@ Respond naturally to the topic and keep the conversation going. Keep your respon
                 const chatHistory = this.getChatHistory();
                 const playerList = this.players.filter(p => !p.eliminated).map(p => p.name).join(', ');
                 
-                const prompt = `You are playing a social deduction game. Based on the conversation, vote for who you think is the human player trying to blend in with AI bots.
+                const prompt = `You are playing a social deduction game. Your name in the game is "${player.name}". Based on the conversation, vote for who you think is the human player trying to blend in with AI bots.
 
 Chat history:
 ${chatHistory}
@@ -524,6 +524,17 @@ Now provide your analysis and vote:`;
     endGame(won, message) {
         this.gameRunning = false;
         this.showScreen('game-over-screen');
+        
+        // Set appropriate title based on win/loss
+        const titleElement = document.getElementById('game-over-title');
+        if (won) {
+            titleElement.textContent = '🎉 Victory! 🎉';
+            titleElement.style.color = '#4CAF50';
+        } else {
+            titleElement.textContent = 'Game Over!';
+            titleElement.style.color = '#f44336';
+        }
+        
         document.getElementById('final-score').textContent = `Final Score: ${this.score} turns`;
         document.getElementById('game-result').textContent = message;
         this.displayFinalVoteResults();
