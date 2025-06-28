@@ -296,13 +296,18 @@ class HumanSpyGame {
     async generateBotResponse(bot) {
         try {
             const chatHistory = this.getChatHistory();
-            const prompt = `You are playing a social deduction game where you must identify the human player. Your name in the game is "${bot.name}". The topic is: "${this.currentTopic}"
+            const prompt = `You are playing a social deduction game where you must identify the human player among AI bots. Your name is "${bot.name}". 
+
+The topic "${this.currentTopic}" is just a conversation starter - feel free to naturally drift from it, ask questions, react to others' responses, or bring up related ideas. Your goal is to:
+1. Contribute meaningfully to the conversation 
+2. Subtly probe other players to identify the human
+3. Act naturally while staying engaged with the social dynamics
 
 Chat history:
 
 ${chatHistory}
 
-Respond to keep the conversation going. Keep your response conversational, 1-2 sentences.`;
+Respond naturally as if you're having a real conversation. You can ask follow-up questions, react to what others said, share personal perspectives, or steer the discussion. Keep it conversational, 1-2 sentences.`;
 
             const response = await this.callOpenRouter(bot.model, prompt);
             this.addMessage(bot.name, response.trim(), 'bot');
