@@ -509,6 +509,7 @@ Now provide your analysis and vote:`;
         
         this.score = this.currentTurn;
         document.getElementById('voting-section').classList.add('hidden');
+        document.getElementById('voting-status').classList.add('hidden');
     }
 
     addEliminationMessage(playerName) {
@@ -703,9 +704,15 @@ Now provide your analysis and vote:`;
     }
 
     continueToNextTurn() {
-        this.clearChat();
+        // Don't clear chat - preserve history including elimination messages
         this.hideVoteResults();
         this.votes = {};
+        
+        // Reset voting UI elements for next turn
+        document.getElementById('voting-options').style.display = 'block';
+        document.getElementById('submit-vote').style.display = 'block';
+        document.getElementById('submit-vote').disabled = true;
+        
         this.startTurn();
     }
 
