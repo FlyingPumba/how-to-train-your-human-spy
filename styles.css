@@ -607,9 +607,10 @@ button:disabled {
 
 #voting-options {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 250px));
     gap: 10px;
     margin: 20px 0;
+    justify-content: center;
 }
 
 .vote-option {
