@@ -385,6 +385,10 @@ Respond to keep the conversation going. Keep your response conversational, 1-2 s
                 votingOptions.appendChild(option);
             }
         });
+        
+        // Show voting status and start bot voting immediately
+        this.showVotingStatus();
+        this.startBotVoting();
     }
 
     selectVote(playerName) {
@@ -397,23 +401,12 @@ Respond to keep the conversation going. Keep your response conversational, 1-2 s
         document.getElementById('submit-vote').disabled = false;
     }
 
-    async submitVote() {
-        if (!this.selectedVote) return;
-        
-        this.votes[this.playerName] = {
-            vote: this.selectedVote,
-            reasoning: "Human player vote (no reasoning provided)"
-        };
-        
-        // Hide voting options and show loading status
-        document.getElementById('voting-options').style.display = 'none';
-        document.getElementById('submit-vote').style.display = 'none';
-        this.showVotingStatus();
-        
+    async startBotVoting() {
         // Generate bot votes with loading indicators
         const botPlayers = this.players.filter(p => p.type === 'bot' && !p.eliminated);
         
-        for (const player of botPlayers) {
+        // Start all bot voting in parallel
+        const botVotingPromises = botPlayers.map(async (player) => {
             try {
                 this.updateBotVotingStatus(player.name, 'voting');
                 
@@ -458,11 +451,30 @@ Now provide your analysis and vote:`;
                 this.updateBotVotingStatus(player.name, 'complete');
             } catch (error) {
                 console.error('Error generating bot vote:', error);
-                alert(`Error generating vote for ${player.name}: ${error.message}`);
                 this.updateBotVotingStatus(player.name, 'error');
-                // Skip this bot's vote
-                continue;
+                // Don't throw - just mark as error and continue
             }
+        });
+        
+        // Store the promise so submitVote can wait for it
+        this.botVotingPromise = Promise.all(botVotingPromises);
+    }
+
+    async submitVote() {
+        if (!this.selectedVote) return;
+        
+        this.votes[this.playerName] = {
+            vote: this.selectedVote,
+            reasoning: "Human player vote (no reasoning provided)"
+        };
+        
+        // Hide voting options
+        document.getElementById('voting-options').style.display = 'none';
+        document.getElementById('submit-vote').style.display = 'none';
+        
+        // Wait for all bot votes to complete
+        if (this.botVotingPromise) {
+            await this.botVotingPromise;
         }
         
         this.processVotes();
@@ -721,6 +733,7 @@ Now provide your analysis and vote:`;
         // Don't clear chat - preserve history including elimination messages
         this.hideVoteResults();
         this.votes = {};
+        this.botVotingPromise = null;
         
         // Reset voting UI elements for next turn
         document.getElementById('voting-options').style.display = 'block';
