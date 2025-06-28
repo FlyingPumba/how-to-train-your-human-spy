@@ -309,7 +309,6 @@ class HumanSpyGame {
 The topic "${this.currentTopic}" is just a conversation starter - feel free to naturally drift from it, ask questions, react to others' responses, or bring up related ideas. Your goal is to:
 1. Contribute meaningfully to the conversation 
 2. Subtly probe other players to identify the human
-3. Act naturally while staying engaged with the social dynamics
 
 Chat history:
 
@@ -332,7 +331,7 @@ Respond naturally as if you're having a real conversation. You can ask follow-up
         return Array.from(messages).map(msg => {
             const name = msg.querySelector('.message-header').textContent.replace(':', '');
             const text = msg.querySelector('.message-text').textContent;
-            return `${name}: \`${text}\``;
+            return `${name}: ${text}`;
         }).join('\n');
     }
 
