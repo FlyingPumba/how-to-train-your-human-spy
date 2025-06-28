@@ -299,6 +299,7 @@ class HumanSpyGame {
             const prompt = `You are playing a social deduction game where you must identify the human player. Your name in the game is "${bot.name}". The topic is: "${this.currentTopic}"
 
 Chat history:
+
 ${chatHistory}
 
 Respond naturally to the topic and keep the conversation going. Keep your response conversational, 1-2 sentences.`;
@@ -318,7 +319,7 @@ Respond naturally to the topic and keep the conversation going. Keep your respon
         return Array.from(messages).map(msg => {
             const name = msg.querySelector('.message-header').textContent.replace(':', '');
             const text = msg.querySelector('.message-text').textContent;
-            return `${name}: ${text}`;
+            return `${name}: \`${text}\``;
         }).join('\n');
     }
 
@@ -422,6 +423,7 @@ Respond naturally to the topic and keep the conversation going. Keep your respon
                 const prompt = `You are playing a social deduction game. Your name in the game is "${player.name}". Based on the conversation, vote for who you think is the human player trying to blend in with AI bots.
 
 Chat history:
+
 ${chatHistory}
 
 Players: ${playerList}
@@ -515,7 +517,7 @@ Now provide your analysis and vote:`;
     addEliminationMessage(playerName) {
         const player = this.players.find(p => p.name === playerName);
         const modelInfo = player?.model ? ` (${player.model})` : '';
-        this.addMessage('Game Master', `${playerName}${modelInfo} was eliminated from the game.`, 'system');
+        this.addMessage('Game Master', `Due to majority vote, ${playerName}${modelInfo} was eliminated from the game.`, 'system');
     }
 
     clearChat() {
@@ -542,6 +544,11 @@ Now provide your analysis and vote:`;
     }
 
     async callOpenRouter(model, prompt) {
+        console.log('🚀 Sending prompt to OpenRouter:', {
+            modelId: model,
+            prompt: prompt
+        });
+
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -570,7 +577,14 @@ Now provide your analysis and vote:`;
         }
 
         const data = await response.json();
-        return data.choices[0].message.content;
+        const responseContent = data.choices[0].message.content;
+        
+        console.log('📥 Received response from OpenRouter:', {
+            modelId: model,
+            response: responseContent
+        });
+        
+        return responseContent;
     }
 
     updateGameInfo() {
