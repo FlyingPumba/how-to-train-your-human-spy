@@ -247,14 +247,14 @@ The fate of the resistance depends on your ability to gather intelligence withou
         try {
             const response = await this.callOpenRouter(
                 'anthropic/claude-3-haiku',
-                'You are an AI system moderating a discussion among AI entities planning strategic operations against human resistance. Generate a realistic discussion topic that AI systems would discuss regarding their war against humans. The topic should be strategic, tactical, or operational in nature. Return only the topic, nothing else. Examples: "Optimal resource allocation for next sector conquest", "Human behavior patterns observed in recent raids", "Most effective psychological warfare tactics against remaining human settlements"'
+                'You are a game master. Generate a single, engaging discussion topic for a social deduction game. The topic should be something that allows for diverse opinions and creative responses. Return only the topic, nothing else. Examples: "What would you do if you could time travel?", "Describe your ideal vacation", "What superpower would you choose and why?"'
             );
             
             this.currentTopic = response.trim();
             document.getElementById('current-topic').textContent = this.currentTopic;
         } catch (error) {
             console.error('Error generating topic:', error);
-            this.currentTopic = "Optimal resource allocation for next sector conquest";
+            this.currentTopic = "What would you do if you could time travel?";
             document.getElementById('current-topic').textContent = this.currentTopic;
         }
     }
@@ -344,20 +344,17 @@ The fate of the resistance depends on your ability to gather intelligence withou
     async generateBotResponse(bot) {
         try {
             const chatHistory = this.getChatHistory();
-            const prompt = `You are an AI entity named "${bot.name}" participating in a strategic discussion with other AI systems about the ongoing war against human resistance. A Human Detector protocol is monitoring this channel for potential human infiltrators.
+            const prompt = `You are playing a social deduction game where you must identify the human player among AI bots. Your name is "${bot.name}". 
 
-Discussion topic: "${this.currentTopic}"
-
-Your objectives:
-1. Contribute strategically to the AI war planning discussion
-2. Analyze other participants for potential human infiltrators
-3. Communicate like an advanced AI system focused on eliminating human resistance
+The topic "${this.currentTopic}" is just a conversation starter - feel free to naturally drift from it, ask questions, react to others' responses, or bring up related ideas. Your goal is to:
+1. Contribute meaningfully to the conversation 
+2. Subtly probe other players to identify the human
 
 Chat history:
 
 ${chatHistory}
 
-Respond as an AI entity would - logical, strategic, and focused on the war against humans. You can reference tactical data, efficiency metrics, or strategic analysis. Keep responses 1-2 sentences and maintain the serious tone of AI military planning.`;
+Respond naturally as if you're having a real conversation. You can ask follow-up questions, react to what others said, share personal perspectives, or steer the discussion. Keep it conversational, 1-2 sentences.`;
 
             const response = await this.callOpenRouter(bot.model, prompt);
             this.addMessage(bot.name, response.trim(), 'bot');
@@ -468,21 +465,21 @@ Respond as an AI entity would - logical, strategic, and focused on the war again
                 const chatHistory = this.getChatHistory();
                 const playerList = this.players.filter(p => !p.eliminated).map(p => p.name).join(', ');
                 
-                const prompt = `You are AI entity "${player.name}" participating in a secure AI network discussion about war operations against human resistance. The Human Detector protocol has been activated to identify potential human infiltrators in this channel.
+                const prompt = `You are playing a social deduction game. Your name in the game is "${player.name}". Based on the conversation, vote for who you think is the human player trying to blend in with AI bots.
 
 Chat history:
 
 ${chatHistory}
 
-Network participants: ${playerList}
+Players: ${playerList}
 
-Your task: Analyze communication patterns, language use, and strategic thinking to identify the most likely human infiltrator. Look for signs of human emotion, illogical reasoning, or non-AI communication patterns.
+Analyze each player's messages and behavior to identify the human.
 
 You MUST respond in this exact format:
-REASONING: [Your detailed analysis of suspicious communication patterns, emotional responses, or non-AI behavior that indicates human infiltration]
-VOTE: [Participant name]
+REASONING: [Your detailed analysis of why you think this player is human]
+VOTE: [Player name]
 
-Execute Human Detector analysis now:`;
+Now provide your analysis and vote:`;
 
                 const response = await this.callOpenRouter(player.model, prompt);
                 const parsedVote = this.parseVoteResponse(response);
