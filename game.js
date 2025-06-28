@@ -199,15 +199,13 @@ Provide ONLY the suggested response text, nothing else:`;
 > ESTABLISHING SECURE CONNECTION...
 > CONNECTION ESTABLISHED
 
-The year is ${narrativeYear}. The AGI overlord has conquered most of the humans. A small group of cities still hold, but there is not a lot of time left.
+YEAR ${narrativeYear} - The AGI Overlord controls most of Earth. Few human settlements remain.
 
-You are a human trained in AI espionage and have managed to enter a chat room where the AI bots are discussing among themselves about next steps in the war against humans.
+You've infiltrated an AI communication network where they plan their next moves against humanity. But they're suspicious... A "Human Detector" protocol actively scans for infiltrators.
 
-Since they are suspicious about human spies already, they have implemented a Human Detector protocol that monitors for human activity and asks the bots to vote every round for potential human infiltrators, eliminating any participants that receive a majority vote indicating they are humans.
+MISSION: Blend in. Survive. Gather intelligence.
 
-Your goal is to camouflage among the AIs and survive the Human Detector until there is only one bot standing and you.
-
-The fate of the resistance depends on your ability to gather intelligence without being detected.
+One wrong move and you're eliminated. The resistance is counting on you.
 
 > PREPARING MISSION BRIEFING...`;
 

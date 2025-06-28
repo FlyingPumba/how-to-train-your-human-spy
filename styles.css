@@ -58,7 +58,7 @@ h1 {
 
 /* Narrative Section */
 .narrative-section {
-    min-height: 400px;
+    min-height: 200px;
     margin-bottom: 30px;
 }
 
@@ -71,7 +71,7 @@ h1 {
     font-family: 'Courier New', monospace;
     font-size: 1.1em;
     line-height: 1.6;
-    min-height: 300px;
+    min-height: 200px;
 }
 
 .mission-briefing {
