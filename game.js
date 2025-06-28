@@ -232,19 +232,29 @@ class HumanSpyGame {
     }
 
     shuffleTurnOrder() {
-        // Only include non-eliminated players
-        this.turnOrder = this.players.filter(p => !p.eliminated);
+        // Include all players but only shuffle non-eliminated ones
+        const activePlayers = this.players.filter(p => !p.eliminated);
+        const eliminatedPlayers = this.players.filter(p => p.eliminated);
         
-        // Fisher-Yates shuffle algorithm with better randomization
-        for (let i = this.turnOrder.length - 1; i > 0; i--) {
+        // Fisher-Yates shuffle algorithm for active players
+        for (let i = activePlayers.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [this.turnOrder[i], this.turnOrder[j]] = [this.turnOrder[j], this.turnOrder[i]];
+            [activePlayers[i], activePlayers[j]] = [activePlayers[j], activePlayers[i]];
         }
         
-        console.log('Turn order:', this.turnOrder.map(p => `${p.name}${p.type === 'human' ? ' (human)' : ''}`));
+        // Combine active and eliminated players for display
+        this.turnOrder = [...activePlayers, ...eliminatedPlayers];
+        
+        console.log('Turn order:', this.turnOrder.map(p => `${p.name}${p.type === 'human' ? ' (human)' : ''}${p.eliminated ? ' (eliminated)' : ''}`));
     }
 
     async nextSpeaker() {
+        // Find next non-eliminated player
+        while (this.currentSpeakerIndex < this.turnOrder.length && 
+               this.turnOrder[this.currentSpeakerIndex].eliminated) {
+            this.currentSpeakerIndex++;
+        }
+        
         if (this.currentSpeakerIndex >= this.turnOrder.length) {
             this.startVoting();
             return;
@@ -626,6 +636,12 @@ Now provide your analysis and vote:`;
         this.turnOrder.forEach((player, index) => {
             const playerDiv = document.createElement('div');
             playerDiv.className = 'turn-order-player';
+            
+            // Add eliminated class if player is eliminated
+            if (player.eliminated) {
+                playerDiv.classList.add('eliminated');
+            }
+            
             const humanIndicator = player.type === 'human' ? ' <span class="human-indicator">(human)</span>' : '';
             const eliminatedIndicator = player.eliminated ? ' <span class="eliminated-indicator">[ELIMINATED]</span>' : '';
             playerDiv.innerHTML = `
