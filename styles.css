@@ -322,6 +322,13 @@ button:disabled {
     opacity: 0.9;
 }
 
+.eliminated-indicator {
+    color: #f44336;
+    font-size: 0.7em;
+    font-weight: bold;
+    opacity: 0.8;
+}
+
 #vote-results-content {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
@@ -448,6 +455,30 @@ button:disabled {
     margin: 20px 0;
 }
 
+.eliminated-player {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 15px;
+    margin-bottom: 8px;
+    background: rgba(244, 67, 54, 0.2);
+    border-radius: 6px;
+    border-left: 3px solid #f44336;
+}
+
+.eliminated-player:last-child {
+    margin-bottom: 0;
+}
+
+.eliminated-label {
+    background: #f44336;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
 #chat-section {
     height: 400px;
     margin-bottom: 20px;
@@ -477,6 +508,13 @@ button:disabled {
 .message.bot {
     background: rgba(33, 150, 243, 0.3);
     border-left: 4px solid #2196F3;
+}
+
+.message.system {
+    background: rgba(255, 193, 7, 0.3);
+    border-left: 4px solid #FFC107;
+    font-style: italic;
+    text-align: center;
 }
 
 .message-header {

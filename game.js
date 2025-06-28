@@ -177,7 +177,7 @@ class HumanSpyGame {
         const availableBotNames = allBotNames.filter((_, index) => index !== humanBotIndex);
         
         // Initialize players array with human player
-        this.players = [{ name: this.playerName, type: 'human' }];
+        this.players = [{ name: this.playerName, type: 'human', eliminated: false }];
         
         // Add AI bots based on selected models
         let botIndex = 0;
@@ -187,7 +187,8 @@ class HumanSpyGame {
                     name: availableBotNames[botIndex],
                     type: 'bot',
                     model: modelId,
-                    displayName: modelInfo.displayName
+                    displayName: modelInfo.displayName,
+                    eliminated: false
                 });
                 botIndex++;
             }
@@ -225,7 +226,8 @@ class HumanSpyGame {
     }
 
     shuffleTurnOrder() {
-        this.turnOrder = [...this.players];
+        // Only include non-eliminated players
+        this.turnOrder = this.players.filter(p => !p.eliminated);
         for (let i = this.turnOrder.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [this.turnOrder[i], this.turnOrder[j]] = [this.turnOrder[j], this.turnOrder[i]];
@@ -362,9 +364,9 @@ Respond naturally to the topic and keep the conversation going. Keep your respon
         const votingOptions = document.getElementById('voting-options');
         votingOptions.innerHTML = '';
         
-        // Only show bot players as voting options (exclude human player)
+        // Only show non-eliminated players as voting options (exclude human player)
         this.players.forEach(player => {
-            if (player.type !== 'human') {
+            if (player.type !== 'human' && !player.eliminated) {
                 const option = document.createElement('div');
                 option.className = 'vote-option';
                 option.textContent = player.name;
@@ -398,14 +400,14 @@ Respond naturally to the topic and keep the conversation going. Keep your respon
         this.showVotingStatus();
         
         // Generate bot votes with loading indicators
-        const botPlayers = this.players.filter(p => p.type === 'bot');
+        const botPlayers = this.players.filter(p => p.type === 'bot' && !p.eliminated);
         
         for (const player of botPlayers) {
             try {
                 this.updateBotVotingStatus(player.name, 'voting');
                 
                 const chatHistory = this.getChatHistory();
-                const playerList = this.players.map(p => p.name).join(', ');
+                const playerList = this.players.filter(p => !p.eliminated).map(p => p.name).join(', ');
                 
                 const prompt = `You are playing a social deduction game. Based on the conversation, vote for who you think is the human player trying to blend in with AI bots.
 
@@ -425,15 +427,16 @@ Now provide your analysis and vote:`;
                 const response = await this.callOpenRouter(player.model, prompt);
                 const parsedVote = this.parseVoteResponse(response);
                 
-                // Validate the vote
-                if (this.players.some(p => p.name === parsedVote.vote)) {
+                // Validate the vote (must be non-eliminated player)
+                if (this.players.some(p => p.name === parsedVote.vote && !p.eliminated)) {
                     this.votes[player.name] = {
                         vote: parsedVote.vote,
                         reasoning: parsedVote.reasoning
                     };
                 } else {
-                    // Random vote if response is invalid
-                    const randomPlayer = this.players[Math.floor(Math.random() * this.players.length)];
+                    // Random vote if response is invalid (from non-eliminated players)
+                    const activePlayers = this.players.filter(p => !p.eliminated);
+                    const randomPlayer = activePlayers[Math.floor(Math.random() * activePlayers.length)];
                     this.votes[player.name] = {
                         vote: randomPlayer.name,
                         reasoning: "Invalid response format - random vote assigned"
@@ -466,16 +469,42 @@ Now provide your analysis and vote:`;
         // Display vote results
         this.displayVoteResults(voteCounts, winners, maxVotes);
         
-        // Check if there's a majority and if they correctly identified the human
-        const majorityThreshold = Math.ceil(this.players.length / 2);
-        
-        if (maxVotes >= majorityThreshold && winners.includes(this.playerName)) {
-            this.endGame(false, `The bots correctly identified you as the human! You survived ${this.currentTurn} turns.`);
+        // Handle elimination logic
+        if (winners.length === 1) {
+            const eliminatedPlayer = winners[0];
+            
+            if (eliminatedPlayer === this.playerName) {
+                // Human gets eliminated - game over
+                this.endGame(false, `You were eliminated! You survived ${this.currentTurn} turns.`);
+                return;
+            } else {
+                // Bot gets eliminated
+                const player = this.players.find(p => p.name === eliminatedPlayer);
+                if (player) {
+                    player.eliminated = true;
+                    this.addEliminationMessage(eliminatedPlayer);
+                }
+                
+                // Check win condition: only human + 2 bots left
+                const activeBots = this.players.filter(p => p.type === 'bot' && !p.eliminated);
+                if (activeBots.length <= 2) {
+                    this.endGame(true, `Congratulations! You survived until only 2 bots remained. You won after ${this.currentTurn} turns!`);
+                    return;
+                }
+            }
         } else {
-            // Human survives this round or no majority
-            this.score = this.currentTurn;
-            document.getElementById('voting-section').classList.add('hidden');
+            // Tie vote - no elimination, add message to chat
+            this.addMessage('Game Master', `Vote tied between ${winners.join(' and ')}. No one was eliminated this turn.`, 'system');
         }
+        
+        this.score = this.currentTurn;
+        document.getElementById('voting-section').classList.add('hidden');
+    }
+
+    addEliminationMessage(playerName) {
+        const player = this.players.find(p => p.name === playerName);
+        const modelInfo = player?.model ? ` (${player.model})` : '';
+        this.addMessage('Game Master', `${playerName}${modelInfo} was eliminated from the game.`, 'system');
     }
 
     clearChat() {
@@ -545,9 +574,10 @@ Now provide your analysis and vote:`;
             const playerDiv = document.createElement('div');
             playerDiv.className = 'turn-order-player';
             const humanIndicator = player.type === 'human' ? ' <span class="human-indicator">(human)</span>' : '';
+            const eliminatedIndicator = player.eliminated ? ' <span class="eliminated-indicator">[ELIMINATED]</span>' : '';
             playerDiv.innerHTML = `
                 <span class="turn-order-number">${index + 1}</span>
-                ${player.name}${humanIndicator}
+                ${player.name}${humanIndicator}${eliminatedIndicator}
             `;
             turnOrderList.appendChild(playerDiv);
         });
@@ -629,7 +659,22 @@ Now provide your analysis and vote:`;
                 `;
             });
         
-        voteResultsContent.innerHTML = summaryHTML + detailsHTML;
+        // Add eliminated players section
+        const eliminatedPlayers = this.players.filter(p => p.eliminated);
+        let eliminatedHTML = '';
+        if (eliminatedPlayers.length > 0) {
+            eliminatedHTML = '<h4 style="margin-top: 15px;">Eliminated Players:</h4>';
+            eliminatedPlayers.forEach(player => {
+                eliminatedHTML += `
+                    <div class="eliminated-player">
+                        <span><strong>${player.name}</strong> <span class="model-id">(${player.model})</span></span>
+                        <span class="eliminated-label">ELIMINATED</span>
+                    </div>
+                `;
+            });
+        }
+        
+        voteResultsContent.innerHTML = summaryHTML + detailsHTML + eliminatedHTML;
     }
 
     hideVoteResults() {
@@ -735,6 +780,20 @@ Now provide your analysis and vote:`;
                     </div>
                 `;
             });
+        
+        // Add eliminated players section
+        const eliminatedPlayers = this.players.filter(p => p.eliminated);
+        if (eliminatedPlayers.length > 0) {
+            html += '<h4 style="margin-top: 20px;">Eliminated Players:</h4>';
+            eliminatedPlayers.forEach(player => {
+                html += `
+                    <div class="eliminated-player">
+                        <span><strong>${player.name}</strong> <span class="model-id">(${player.model})</span></span>
+                        <span class="eliminated-label">ELIMINATED</span>
+                    </div>
+                `;
+            });
+        }
         
         finalVoteDisplay.innerHTML = html;
     }
