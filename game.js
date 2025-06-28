@@ -166,14 +166,14 @@ class HumanSpyGame {
         if (!this.assistantModel) return;
 
         const chatHistory = this.getChatHistory();
-        const prompt = `You are an AI assistant helping a human player in a social deduction game where the human is trying to blend in with AI bots and avoid being detected. The Game Master has provided a topic to use as a conversation starter at the beginning of the game.
+        const prompt = `You are an AI assistant helping a human player in a social deduction game where the human is trying to blend in with AI bots and avoid being detected. The human's name in the game is "${this.playerName}". The Game Master has provided a topic to use as a conversation starter at the beginning of the game.
 
 Current topic: "${this.currentTopic}"
 
 Chat history:
 ${chatHistory}
 
-Your task: Suggest a response that will help the human blend in with the AI participants. The response should:
+Your task: Suggest a response that will help the human (playing as "${this.playerName}") blend in with the AI participants. The response should:
 1. Be natural and conversational (not too robotic)
 2. Engage with the topic or previous messages
 3. Avoid patterns that might reveal human behavior
