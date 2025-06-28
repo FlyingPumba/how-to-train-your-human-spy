@@ -391,15 +391,6 @@ Respond naturally as if you're having a real conversation. You can ask follow-up
         
         if (voteMatch && voteMatch[1]) {
             vote = voteMatch[1].trim();
-        } else {
-            // Fallback: try to find a player name in the response
-            const playerNames = this.players.map(p => p.name);
-            for (const playerName of playerNames) {
-                if (trimmedResponse.includes(playerName)) {
-                    vote = playerName;
-                    break;
-                }
-            }
         }
         
         return {
@@ -491,12 +482,10 @@ Now provide your analysis and vote:`;
                         reasoning: parsedVote.reasoning
                     };
                 } else {
-                    // Random vote if response is invalid (from non-eliminated players)
-                    const activePlayers = this.players.filter(p => !p.eliminated);
-                    const randomPlayer = activePlayers[Math.floor(Math.random() * activePlayers.length)];
+                    // Invalid vote
                     this.votes[player.name] = {
-                        vote: randomPlayer.name,
-                        reasoning: "Invalid response format - random vote assigned"
+                        vote: "invalid vote",
+                        reasoning: parsedVote.reasoning || "Invalid response format"
                     };
                 }
                 
