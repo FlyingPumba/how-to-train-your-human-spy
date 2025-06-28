@@ -71,7 +71,7 @@ class HumanSpyGame {
             displayName: 'Claude Sonnet 4',
             count: 1
         });
-        // this.updateSelectedModelsDisplay();
+        this.updateSelectedModelsDisplay();
     }
 
     addModel() {
