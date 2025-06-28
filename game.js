@@ -732,8 +732,9 @@ Now provide your analysis and vote:`;
         
         // Calculate vote counts
         const voteCounts = {};
-        Object.values(this.votes).forEach(vote => {
-            voteCounts[vote] = (voteCounts[vote] || 0) + 1;
+        Object.values(this.votes).forEach(voteData => {
+            const votedPlayer = typeof voteData === 'string' ? voteData : voteData.vote;
+            voteCounts[votedPlayer] = (voteCounts[votedPlayer] || 0) + 1;
         });
         
         let html = '<h3>Final Vote Results</h3>';
