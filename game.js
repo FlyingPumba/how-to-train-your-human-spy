@@ -11,6 +11,8 @@ class HumanSpyGame {
         this.gamePhase = 'setup'; // setup, discussion, voting, gameOver
         this.votes = {};
         this.gameRunning = false;
+        this.assistantEnabled = false;
+        this.assistantModel = '';
         
         this.modelDisplayNames = {
             // Anthropic models
@@ -55,6 +57,8 @@ class HumanSpyGame {
         document.getElementById('submit-vote').addEventListener('click', () => this.submitVote());
         document.getElementById('continue-game').addEventListener('click', () => this.continueToNextTurn());
         document.getElementById('play-again').addEventListener('click', () => this.resetGame());
+        document.getElementById('enable-assistant').addEventListener('change', (e) => this.toggleAssistant(e.target.checked));
+        document.getElementById('use-suggestion').addEventListener('click', () => this.useSuggestion());
     }
 
     setDefaultModels() {
@@ -138,6 +142,55 @@ class HumanSpyGame {
         container.innerHTML = html;
     }
 
+    toggleAssistant(enabled) {
+        this.assistantEnabled = enabled;
+        const assistantSelection = document.getElementById('assistant-selection');
+        if (enabled) {
+            assistantSelection.classList.remove('hidden');
+        } else {
+            assistantSelection.classList.add('hidden');
+        }
+    }
+
+    useSuggestion() {
+        const suggestionText = document.getElementById('suggestion-text').textContent;
+        if (suggestionText && suggestionText !== 'Generating suggestion...') {
+            document.getElementById('message-input').value = suggestionText;
+        }
+    }
+
+    async generateAssistantSuggestion() {
+        if (!this.assistantEnabled) return;
+
+        this.assistantModel = document.getElementById('assistant-model').value;
+        if (!this.assistantModel) return;
+
+        const chatHistory = this.getChatHistory();
+        const prompt = `You are an AI assistant helping a human player in a social deduction game where the human is trying to blend in with AI bots and avoid being detected. The Game Master has provided a topic to use as a conversation starter at the beginning of the game.
+
+Current topic: "${this.currentTopic}"
+
+Chat history:
+${chatHistory}
+
+Your task: Suggest a response that will help the human blend in with the AI participants. The response should:
+1. Be natural and conversational (not too robotic)
+2. Engage with the topic or previous messages
+3. Avoid patterns that might reveal human behavior
+4. Be 1-2 sentences maximum
+
+Provide ONLY the suggested response text, nothing else:`;
+
+        try {
+            document.getElementById('suggestion-text').textContent = 'Generating suggestion...';
+            const suggestion = await this.callOpenRouter(this.assistantModel, prompt);
+            document.getElementById('suggestion-text').textContent = suggestion.trim();
+        } catch (error) {
+            console.error('Error generating assistant suggestion:', error);
+            document.getElementById('suggestion-text').textContent = 'Error generating suggestion. Try again.';
+        }
+    }
+
     async startNarrative() {
         const currentYear = new Date().getFullYear();
         const narrativeYear = currentYear + 2;
@@ -188,6 +241,15 @@ The fate of the resistance depends on your ability to gather intelligence withou
         if (this.selectedModels.size === 0) {
             alert('Please select at least one model');
             return;
+        }
+
+        // Check assistant configuration if enabled
+        if (this.assistantEnabled) {
+            this.assistantModel = document.getElementById('assistant-model').value;
+            if (!this.assistantModel) {
+                alert('Please select an AI assistant model');
+                return;
+            }
         }
 
         this.gameRunning = true;
@@ -313,13 +375,20 @@ The fate of the resistance depends on your ability to gather intelligence withou
         }
     }
 
-    showPlayerInput() {
+    async showPlayerInput() {
         document.getElementById('player-input').classList.remove('hidden');
+        
+        if (this.assistantEnabled) {
+            document.getElementById('assistant-suggestion').classList.remove('hidden');
+            await this.generateAssistantSuggestion();
+        }
+        
         document.getElementById('message-input').focus();
     }
 
     hidePlayerInput() {
         document.getElementById('player-input').classList.add('hidden');
+        document.getElementById('assistant-suggestion').classList.add('hidden');
         document.getElementById('message-input').value = '';
     }
 
@@ -574,8 +643,7 @@ Now provide your analysis and vote:`;
 
     addEliminationMessage(playerName) {
         const player = this.players.find(p => p.name === playerName);
-        const modelInfo = player?.model ? ` (${player.model})` : '';
-        this.addMessage('Human Detector', `DETECTION RESULT: ${playerName}${modelInfo} eliminated from network. Analysis indicates: NOT HUMAN. Continuing surveillance protocols.`, 'system');
+        this.addMessage('Human Detector', `Due to majority vote, ${playerName} was eliminated from the channel. However, they were not the human.`, 'system');
     }
 
     clearChat() {
@@ -912,8 +980,12 @@ Now provide your analysis and vote:`;
         this.votes = {};
         this.gameRunning = false;
         this.gamePhase = 'setup';
+        this.assistantEnabled = false;
+        this.assistantModel = '';
         this.selectedModels.clear();
         this.setDefaultModels();
+        document.getElementById('enable-assistant').checked = false;
+        document.getElementById('assistant-selection').classList.add('hidden');
         this.clearChat();
         document.getElementById('voting-section').classList.add('hidden');
         document.getElementById('voting-status').classList.add('hidden');
