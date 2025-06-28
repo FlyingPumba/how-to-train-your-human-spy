@@ -302,7 +302,7 @@ Chat history:
 
 ${chatHistory}
 
-Respond naturally to the topic and keep the conversation going. Keep your response conversational, 1-2 sentences.`;
+Respond to keep the conversation going. Keep your response conversational, 1-2 sentences.`;
 
             const response = await this.callOpenRouter(bot.model, prompt);
             this.addMessage(bot.name, response.trim(), 'bot');
