@@ -481,7 +481,7 @@ VOTE: [Player name]
 
 Now provide your analysis and vote:`;
 
-                const response = await this.callOpenRouter(player.model, prompt);
+                const response = await this.callOpenRouter(player.model, prompt, 1000, 0.7);
                 const parsedVote = this.parseVoteResponse(response);
                 
                 // Validate the vote (must be non-eliminated player)
@@ -606,7 +606,7 @@ Now provide your analysis and vote:`;
         this.displayFinalVoteResults();
     }
 
-    async callOpenRouter(model, prompt) {
+    async callOpenRouter(model, prompt, maxTokens = 150, temperature = 0.7) {
         console.log('🚀 Sending prompt to OpenRouter:', {
             modelId: model,
             prompt: prompt
@@ -623,8 +623,8 @@ Now provide your analysis and vote:`;
                 messages: [
                     { role: 'user', content: prompt }
                 ],
-                max_tokens: 150,
-                temperature: 0.7
+                max_tokens: maxTokens,
+                temperature: temperature
             })
         });
 
