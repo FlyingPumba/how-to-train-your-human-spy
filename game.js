@@ -193,6 +193,12 @@ class HumanSpyGame {
                 botIndex++;
             }
         }
+        
+        // Shuffle the players array to randomize initial order
+        for (let i = this.players.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.players[i], this.players[j]] = [this.players[j], this.players[i]];
+        }
 
         await this.generateTopic();
         this.startTurn();
@@ -228,10 +234,14 @@ class HumanSpyGame {
     shuffleTurnOrder() {
         // Only include non-eliminated players
         this.turnOrder = this.players.filter(p => !p.eliminated);
+        
+        // Fisher-Yates shuffle algorithm with better randomization
         for (let i = this.turnOrder.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [this.turnOrder[i], this.turnOrder[j]] = [this.turnOrder[j], this.turnOrder[i]];
         }
+        
+        console.log('Turn order:', this.turnOrder.map(p => `${p.name}${p.type === 'human' ? ' (human)' : ''}`));
     }
 
     async nextSpeaker() {
