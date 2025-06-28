@@ -357,7 +357,8 @@ ${chatHistory}
 Respond naturally as if you're having a real conversation. You can ask follow-up questions, react to what others said, share personal perspectives, or steer the discussion. Keep it conversational, 1-2 sentences.`;
 
             const response = await this.callOpenRouter(bot.model, prompt);
-            this.addMessage(bot.name, response.trim(), 'bot');
+            const cleanedResponse = this.stripBotNamePrefix(response.trim());
+            this.addMessage(bot.name, cleanedResponse, 'bot');
         } catch (error) {
             console.error('Error generating bot response:', error);
             alert(`Error generating response for ${bot.name}: ${error.message}`);
@@ -373,6 +374,11 @@ Respond naturally as if you're having a real conversation. You can ask follow-up
             const text = msg.querySelector('.message-text').textContent;
             return `${name}: ${text}`;
         }).join('\n');
+    }
+
+    stripBotNamePrefix(response) {
+        // Remove bot name prefix pattern like "Bot1: ", "Bot23: ", etc.
+        return response.replace(/^Bot\d+:\s*/i, '');
     }
 
     parseVoteResponse(response) {
