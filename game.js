@@ -521,10 +521,10 @@ Now provide your analysis and vote:`;
                     this.addEliminationMessage(eliminatedPlayer);
                 }
                 
-                // Check win condition: only human + 2 bots left
+                // Check win condition: only human + 1 bot left
                 const activeBots = this.players.filter(p => p.type === 'bot' && !p.eliminated);
-                if (activeBots.length <= 2) {
-                    this.endGame(true, `Congratulations! You survived until only 2 bots remained. You won after ${this.currentTurn} turns!`);
+                if (activeBots.length <= 1) {
+                    this.endGame(true, `Congratulations! You survived until only 1 bot remained. You won after ${this.currentTurn} turns!`);
                     return;
                 }
             }
