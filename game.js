@@ -4,7 +4,6 @@ class HumanSpyGame {
         this.playerName = '';
         this.selectedModels = new Map(); // modelId -> {displayName: string, count: number}
         this.currentTurn = 0;
-        this.score = 0;
         this.players = [];
         this.currentTopic = '';
         this.turnOrder = [];
@@ -222,7 +221,6 @@ class HumanSpyGame {
 
     startTurn() {
         this.currentTurn++;
-        this.updateGameInfo();
         this.shuffleTurnOrder();
         this.currentSpeakerIndex = 0;
         this.gamePhase = 'discussion';
@@ -536,15 +534,13 @@ Now provide your analysis and vote:`;
             this.addMessage('Game Master', `Vote tied between ${winners.join(' and ')}. No one was eliminated this turn.`, 'system');
         }
         
-        this.score = this.currentTurn;
         document.getElementById('voting-section').classList.add('hidden');
         document.getElementById('voting-status').classList.add('hidden');
     }
 
     addEliminationMessage(playerName) {
         const player = this.players.find(p => p.name === playerName);
-        const modelInfo = player?.model ? ` (${player.model})` : '';
-        this.addMessage('Game Master', `Due to majority vote, ${playerName}${modelInfo} was eliminated from the game.`, 'system');
+        this.addMessage('Game Master', `Due to majority vote, ${playerName} was eliminated from the game. However, they were not the human.`, 'system');
     }
 
     clearChat() {
@@ -565,7 +561,7 @@ Now provide your analysis and vote:`;
             titleElement.style.color = '#f44336';
         }
         
-        document.getElementById('final-score').textContent = `Final Score: ${this.score} turns`;
+        document.getElementById('final-score').textContent = `Game lasted ${this.currentTurn} turns`;
         document.getElementById('game-result').textContent = message;
         this.displayFinalVoteResults();
     }
@@ -614,10 +610,6 @@ Now provide your analysis and vote:`;
         return responseContent;
     }
 
-    updateGameInfo() {
-        document.getElementById('turn-counter').textContent = `Turn: ${this.currentTurn}`;
-        document.getElementById('score').textContent = `Score: ${this.score}`;
-    }
 
     showScreen(screenId) {
         document.querySelectorAll('.screen').forEach(screen => {
@@ -629,6 +621,10 @@ Now provide your analysis and vote:`;
     displayTurnOrder() {
         const turnOrderSection = document.getElementById('turn-order-section');
         const turnOrderList = document.getElementById('turn-order-list');
+        const turnOrderTitle = document.getElementById('turn-order-title');
+        
+        // Update the title with current turn number
+        turnOrderTitle.textContent = `Speaking Order for Turn ${this.currentTurn}`;
         
         turnOrderSection.classList.remove('hidden');
         turnOrderList.innerHTML = '';
@@ -877,7 +873,6 @@ Now provide your analysis and vote:`;
 
     resetGame() {
         this.currentTurn = 0;
-        this.score = 0;
         this.players = [];
         this.votes = {};
         this.gameRunning = false;
